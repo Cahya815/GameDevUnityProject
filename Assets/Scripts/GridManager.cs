@@ -11,15 +11,20 @@ public class GridManager : MonoBehaviour
     public float unitCost = 200f;
 
     public void BuyUnit()
+{
+    if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(unitCost))
     {
-        // Gunakan satu cara saja agar tidak double cost
-        if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(unitCost))
-        {
-            GameObject newUnit = Instantiate(fireTruckPrefab, spawnPoint.position, Quaternion.identity);
-            activeUnit = newUnit.GetComponent<FireTruck>();
-            Debug.Log("Unit baru dibeli!");
-        }
+        GameObject newUnit = Instantiate(fireTruckPrefab, spawnPoint.position, Quaternion.identity);
+        
+        // AMBIL SCRIPT-NYA
+        UnitIdentity id = newUnit.GetComponent<UnitIdentity>();
+        
+        // MASUKIN KE DAFTAR UnitManager biar bisa dipilih angka 1, 2, 3
+        FindObjectOfType<UnitManager>().allUnits.Add(id); 
+        
+        Debug.Log("Unit baru lahir dan terdaftar di list!");
     }
+}
 
     void Update()
     {

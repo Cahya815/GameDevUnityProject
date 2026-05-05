@@ -16,21 +16,29 @@ public class DisasterUnit : MonoBehaviour
     
 
     void Update()
+{
+    // Ambil referensi ke identitas unitnya
+    UnitIdentity identity = GetComponent<UnitIdentity>();
+
+    // JANGAN nyari puing otomatis kalau lagi dikendalikan manual (pake tombol angka)
+    if (identity != null && !identity.isManualControlled) 
     {
-        // Cari puing terdekat jika sedang nganggur update tes
         if (targetRubble == null)
         {
             FindNearestRubble();
         }
-        else
+    }
+
+    // Logika pembersihan tetap ada
+    if (targetRubble != null)
+    {
+        float distance = Vector3.Distance(transform.position, targetRubble.transform.position);
+        if (distance <= stoppingDistance)
         {
-            float distance = Vector3.Distance(transform.position, targetRubble.transform.position);
-            if (distance <= stoppingDistance)
-            {
-                CleanProcess();
-            }
+            CleanProcess();
         }
     }
+}
 
     void FindNearestRubble()
     {

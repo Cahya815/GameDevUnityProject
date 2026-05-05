@@ -19,26 +19,34 @@ public class UnitManager : MonoBehaviour
     }
 
     void SelectUnit(int index) {
-        if (index >= allUnits.Count) return;
-
-        // Reset semua unit jadi otomatis dulu
-        foreach (var unit in allUnits) unit.isManualControlled = false;
-
-        // Pilih yang baru
-        selectedUnit = allUnits[index];
-        selectedUnit.isManualControlled = true;
-        Debug.Log("Sekarang mengendalikan: " + selectedUnit.gameObject.name);
+    Debug.Log("Mencoba memilih index: " + index + " dari total unit: " + allUnits.Count);
+    
+    if (index >= allUnits.Count) {
+        Debug.LogWarning("Index unit tidak ditemukan! Cek apakah unit sudah masuk List.");
+        return;
     }
 
+    foreach (var unit in allUnits) unit.isManualControlled = false;
+
+    selectedUnit = allUnits[index];
+    selectedUnit.isManualControlled = true;
+}
+
+    
     void MoveSelectedUnit() {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
     if (Physics.Raycast(ray, out RaycastHit hit)) {
-        // Beri tahu unit untuk bergerak ke titik klik
         selectedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(hit.point);
         
-        // Cek apakah yang diklik adalah rumah
-        Flammable f = hit.collider.GetComponent<Flammable>();
-        selectedUnit.targetObject = f; // Jika klik tanah, ini jadi null (bagus!)
+        // Ambil komponen Flammable dari apa yang diklik
+        Flammable f = hit.collider.GetComponentInParent<Flammable>();
+        
+        // HANYA unit yang dipilih yang dapet target ini!
+        selectedUnit.targetObject = f; 
+        
+        if(f != null) Debug.Log(selectedUnit.name + " fokus ke rumah " + hit.collider.name);
     }
 }
+
+
 }
