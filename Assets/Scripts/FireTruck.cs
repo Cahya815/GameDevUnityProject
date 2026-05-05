@@ -15,39 +15,21 @@ public class FireTruck : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
-    void Update()
-    {
-        // 1. Logika Pergerakan: Jika ada target, suruh agent ke sana
-        if (targetPosition != Vector3.zero)
-        {
-            agent.SetDestination(targetPosition);
-        }
+    void Update() {
+    // Ambil script Identity buat cek status
+    UnitIdentity identity = GetComponent<UnitIdentity>();
 
-        // 2. Logika Menyemprot: Cek jarak ke target rumah
-        if (targetFire != null && targetFire.currentStatus == HouseStatus.Terbakar)
-        {
-            float distance = Vector3.Distance(transform.position, targetFire.transform.position);
-
-            if (distance <= stopDistance)
-            {
-                // Berhenti di depan rumah agar tidak tabrakan
-                agent.isStopped = true; 
-                
-                // Panggil fungsi padamkan di Parent
-                targetFire.Extinguish(extinguishPower);
-                Debug.Log("Menyemprot " + targetFire.gameObject.name);
-            }
-            else
-            {
-                agent.isStopped = false;
-            }
-        }
-        else
-        {
-            // Jika rumah sudah padam (Aman) atau hancur (Puing), mobil berhenti kerja
-            if (agent != null) agent.isStopped = false;
-        }
+    // JANGAN JALAN SENDIRI kalau lagi dipilih player
+    if (identity != null && identity.isManualControlled) {
+        // Biarkan UnitManager yang ngatur NavMesh-nya
+        return; 
     }
+
+    // --- SISANYA LOGIKA OTOMATIS LO DI SINI ---
+    if (targetPosition != Vector3.zero) {
+        agent.SetDestination(targetPosition);
+    }
+}
 
     // Fungsi yang dipanggil GridManager (Menerima Vector3 agar tidak error lagi)
     public void SetNewTarget(Vector3 position)

@@ -5,72 +5,51 @@ public class DisasterUnit : MonoBehaviour
 {
     public float cleanSpeed = 20f;
     public float stoppingDistance = 3f;
+
     private Flammable targetRubble;
     private NavMeshAgent agent;
+    private Vector3 targetPosition = Vector3.zero; // Tambahkan deklarasi variabel ini
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
     }
 
-    
+    void Update() {
+        // Ambil script Identity buat cek status
+        UnitIdentity identity = GetComponent<UnitIdentity>();
 
-    void Update()
-{
-    // Ambil referensi ke identitas unitnya
-    UnitIdentity identity = GetComponent<UnitIdentity>();
+        // JANGAN JALAN SENDIRI kalau lagi dipilih player
+        if (identity != null && identity.isManualControlled) {
+            // Biarkan UnitManager yang ngatur NavMesh-nya
+            return; 
+        }
 
-    // JANGAN nyari puing otomatis kalau lagi dikendalikan manual (pake tombol angka)
-    if (identity != null && !identity.isManualControlled) 
-    {
-        if (targetRubble == null)
-        {
-            FindNearestRubble();
+        // --- SISANYA LOGIKA OTOMATIS LO DI SINI ---
+        if (targetPosition != Vector3.zero) {
+            agent.SetDestination(targetPosition);
         }
     }
-
-    // Logika pembersihan tetap ada
-    if (targetRubble != null)
-    {
-        float distance = Vector3.Distance(transform.position, targetRubble.transform.position);
-        if (distance <= stoppingDistance)
-        {
-            CleanProcess();
-        }
-    }
-}
 
     void FindNearestRubble()
     {
-        Flammable[] allHouses = FindObjectsOfType<Flammable>();
-        float shortestDistance = Mathf.Infinity;
-
-        foreach (Flammable house in allHouses)
-        {
-            if (house.currentStatus == HouseStatus.Puing)
-            {
-                float dist = Vector3.Distance(transform.position, house.transform.position);
-                if (dist < shortestDistance)
-                {
-                    shortestDistance = dist;
-                    targetRubble = house;
-                    agent.SetDestination(targetRubble.transform.position);
-                }
-            }
-        }
+        // Logika untuk mencari puing terdekat
     }
 
     void CleanProcess()
     {
         if (targetRubble != null)
         {
-            // Kita asumsikan ada variabel baru di Flammable untuk proses pembersihan
-            // Atau kita langsung panggil fungsi SetToAman
-            targetRubble.SetToAman(); 
-            targetRubble = null;
-            Debug.Log("<color=orange>Puing Berhasil Dibersihkan!</color>");
+            // Logika untuk membersihkan puing
         }
     }
 
-    
+    // Fungsi untuk mengatur target baru
+    public void SetNewTarget(Vector3 position)
+    {
+        targetPosition = position;
+
+        // Trik agar tahu script Flammable-nya:
+        targetRubble = null; // Reset target puing
+    }
 }
