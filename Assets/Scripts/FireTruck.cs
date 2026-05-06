@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.AI; // Wajib untuk gerakin mobil
+using UnityEngine.AI; 
 
 public class FireTruck : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class FireTruck : MonoBehaviour
     void Update() {
     UnitIdentity identity = GetComponent<UnitIdentity>();
 
-    // Jangan jalan sendiri jika unit idle
+    // buat idle
     if (identity != null && (identity.isIdle || !identity.isManualControlled)) {
         agent.isStopped = true; // Pastikan NavMeshAgent berhenti
         return; 
