@@ -16,16 +16,15 @@ public class FireTruck : MonoBehaviour
     }
 
     void Update() {
-    // Ambil script Identity buat cek status
     UnitIdentity identity = GetComponent<UnitIdentity>();
 
-    // JANGAN JALAN SENDIRI kalau lagi dipilih player
-    if (identity != null && identity.isManualControlled) {
-        // Biarkan UnitManager yang ngatur NavMesh-nya
+    // Jangan jalan sendiri jika unit idle
+    if (identity != null && (identity.isIdle || !identity.isManualControlled)) {
+        agent.isStopped = true; // Pastikan NavMeshAgent berhenti
         return; 
     }
 
-    // --- SISANYA LOGIKA OTOMATIS LO DI SINI ---
+    // Logika lainnya (jika ada target)
     if (targetPosition != Vector3.zero) {
         agent.SetDestination(targetPosition);
     }

@@ -324,6 +324,7 @@ MonoBehaviour:
   power: 20
   targetObject: {fileID: 390226690}
   isManualControlled: 0
+  isIdle: 1
 --- !u!114 &148865135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -808,10 +809,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fd13ac2ad8ab284c80d87ca6724f6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
-  clickLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  activeUnit: {fileID: 1032381838}
   fireTruckPrefab: {fileID: 1032381832}
   spawnPoint: {fileID: 0}
   unitCost: 200
@@ -1137,6 +1134,7 @@ MonoBehaviour:
   power: 20
   targetObject: {fileID: 390226690}
   isManualControlled: 0
+  isIdle: 1
 --- !u!1 &1063234836
 GameObject:
   m_ObjectHideFlags: 0
@@ -1152,6 +1150,7 @@ GameObject:
   - component: {fileID: 1063234842}
   - component: {fileID: 1063234841}
   - component: {fileID: 1063234843}
+  - component: {fileID: 1063234844}
   m_Layer: 6
   m_Name: Ground
   m_TagString: Untagged
@@ -1262,15 +1261,11 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1063234836}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3fd13ac2ad8ab284c80d87ca6724f6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
-  clickLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  activeUnit: {fileID: 1032381838}
   fireTruckPrefab: {fileID: 1032381832}
   spawnPoint: {fileID: 1561694008}
   unitCost: 200
@@ -1313,7 +1308,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1063234836}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
   m_Name: 
@@ -1326,6 +1321,22 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &1063234844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063234836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77582b9dd0f96a440a3e0e76be1b6f54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitManager
+  allUnits:
+  - {fileID: 1032381839}
+  - {fileID: 148865134}
+  selectedUnit: {fileID: 0}
 --- !u!1 &1066242521 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2925475062389121904, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}

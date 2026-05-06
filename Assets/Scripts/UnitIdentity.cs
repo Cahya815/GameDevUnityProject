@@ -10,7 +10,8 @@ public class UnitIdentity : MonoBehaviour
 
     [Header("State")]
     public Flammable targetObject; // Variabel ini yang dicari UnitManager
-    public bool isManualControlled = false;
+    public bool isManualControlled = false; // Hanya true jika unit dipilih
+    public bool isIdle = true; // Tambahkan status idle untuk unit
     
     private NavMeshAgent agent;
     private bool isReturningToHQ = false;
@@ -20,10 +21,17 @@ public class UnitIdentity : MonoBehaviour
     }
 
     void Update() {
+        // Jika unit tidak dipilih (idle), jangan lakukan apa-apa
+        if (isIdle) {
+            agent.isStopped = true; // Pastikan NavMeshAgent berhenti
+            return;
+        }
+
+        // Jika ada target, unit akan bergerak ke target
         if (targetObject != null) {
             float dist = Vector3.Distance(transform.position, targetObject.transform.position);
 
-            // HANYA gerak otomatis kalau TIDAK sedang dikendalikan manual
+            // Hanya gerak otomatis jika tidak dikendalikan manual
             if (!isManualControlled) {
                 agent.SetDestination(targetObject.transform.position);
             }
@@ -33,7 +41,7 @@ public class UnitIdentity : MonoBehaviour
             }
         } 
         else if (!isManualControlled && !isReturningToHQ) {
-            // Balik ke HQ cuma kalau bener-bener nganggur
+            // Balik ke HQ hanya jika idle dan tidak ada target
             ReturnToHQ();
         }
     }
@@ -48,7 +56,7 @@ public class UnitIdentity : MonoBehaviour
             targetObject.CleanRubble(power);
         }
 
-        // Jika target sudah Aman, lepas target agar bisa balik ke HQ
+        // Jika target sudah aman, lepas target agar unit idle
         if (targetObject.currentStatus == HouseStatus.Aman) {
             targetObject = null;
         }
@@ -56,7 +64,7 @@ public class UnitIdentity : MonoBehaviour
 
     public void ReturnToHQ() {
         isReturningToHQ = true;
-        if(agent != null && hqLocation != null) {
+        if (agent != null && hqLocation != null) {
             agent.SetDestination(hqLocation.position);
         }
     }

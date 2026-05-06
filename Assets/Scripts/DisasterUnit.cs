@@ -15,22 +15,20 @@ public class DisasterUnit : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
-    void Update() {
-        // Ambil script Identity buat cek status
-        UnitIdentity identity = GetComponent<UnitIdentity>();
+   void Update() {
+    UnitIdentity identity = GetComponent<UnitIdentity>();
 
-        // JANGAN JALAN SENDIRI kalau lagi dipilih player
-        if (identity != null && identity.isManualControlled) {
-            // Biarkan UnitManager yang ngatur NavMesh-nya
-            return; 
-        }
-
-        // --- SISANYA LOGIKA OTOMATIS LO DI SINI ---
-        if (targetPosition != Vector3.zero) {
-            agent.SetDestination(targetPosition);
-        }
+    // Jangan jalan sendiri jika unit idle
+    if (identity != null && (identity.isIdle || !identity.isManualControlled)) {
+        agent.isStopped = true; // Pastikan NavMeshAgent berhenti
+        return; 
     }
 
+    // Logika lainnya (jika ada target)
+    if (targetPosition != Vector3.zero) {
+        agent.SetDestination(targetPosition);
+    }
+}
     void FindNearestRubble()
     {
         // Logika untuk mencari puing terdekat
