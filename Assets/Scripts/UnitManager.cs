@@ -5,7 +5,7 @@ public class UnitManager : MonoBehaviour
 {
     public List<UnitIdentity> allUnits = new List<UnitIdentity>();
     public UnitIdentity selectedUnit;
-
+    
     void Update() {
         // Pilih unit pakai tombol angka
         if (Input.GetKeyDown(KeyCode.Alpha1)) SelectUnit(0);
@@ -18,17 +18,29 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    void SelectUnit(int index) {
-        if (index >= allUnits.Count) return;
+   void SelectUnit(int index) {
+    if (index >= allUnits.Count) return;
 
-        // // Reset semua unit jadi otomatis dulu
-        // foreach (var unit in allUnits) unit.isManualControlled = false;
+    // Unit yang akan kita pilih
+    UnitIdentity unitToSelect = allUnits[index];
 
-        // Pilih yang baru
-        selectedUnit = allUnits[index];
-        selectedUnit.isManualControlled = true;
-        Debug.Log("Sekarang mengendalikan: " + selectedUnit.gameObject.name);
+    // Reset SEMUA unit lain agar pulang
+    foreach (var unit in allUnits) {
+        if (unit != null && unit != unitToSelect) {
+            unit.isManualControlled = false; 
+            unit.targetObject = null; // Unit lain harus lepas target agar pulang
+        }
     }
+
+    // Aktifkan unit yang dipilih
+    selectedUnit = unitToSelect;
+    selectedUnit.isManualControlled = true; 
+    
+    // Pastikan agent unit yang baru dipilih tidak sedang berhenti (Stop)
+    if(selectedUnit.agent != null) selectedUnit.agent.isStopped = false;
+
+    Debug.Log("Mengendalikan: " + selectedUnit.gameObject.name);
+}
 
     void MoveSelectedUnit() {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

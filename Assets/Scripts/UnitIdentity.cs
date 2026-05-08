@@ -5,41 +5,52 @@ public class UnitIdentity : MonoBehaviour
 {
     [Header("Settings")]
     public UnitType jenisUnit;
-    public Transform hqLocation; 
     public float power = 50f;
 
     [Header("State")]
-    public Flammable targetObject; // Variabel ini yang dicari UnitManager
+    public Flammable targetObject; 
     public bool isManualControlled = false;
     
-    private NavMeshAgent agent;
-    private bool isReturningToHQ = false;
+    public NavMeshAgent agent; // Sekarang UnitManager bisa ngasih perintah
+    private Vector3 spawnPosition; // Koordinat rumah asli
+    private bool isReturningHome = false;
 
-    void Start() {
+    void Awake() {
         agent = GetComponent<NavMeshAgent>();
+        // CATAT POSISI AWAL saat baru spawn/start
+        spawnPosition = transform.position;
     }
 
     void Update() {
-        // 1. Logika Balik ke HQ
-        if (!isManualControlled && targetObject == null && hqLocation != null && !isReturningToHQ) {
-            // Cek jika sudah di HQ, jangan spam perintah
-            if (Vector3.Distance(transform.position, hqLocation.position) > 2f) {
-                ReturnToHQ();
+        // 1. LOGIKA BALIK KE RUMAH (Hanya jika tidak dikontrol & tidak punya kerjaan)
+        if (!isManualControlled && targetObject == null) {
+            float distToHome = Vector3.Distance(transform.position, spawnPosition);
+            
+            if (distToHome > 1.5f && !isReturningHome) {
+                ReturnToHome();
+            } 
+            else if (distToHome <= 1.5f) {
+                // Sampai di rumah, stop total (Idle)
+                isReturningHome = false;
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
             }
         }
 
-        // 2. Logika Kerja
+        // 2. LOGIKA KERJA
         if (targetObject != null) {
-            isReturningToHQ = false;
+            isReturningHome = false;
+            agent.isStopped = false;
+
             float dist = Vector3.Distance(transform.position, targetObject.transform.position);
             
-            // Perintahkan NavMesh ke target jika otomatis
+            // JANGAN JALAN SENDIRI kalau manual. Biarkan GridManager yang gerakin.
             if (!isManualControlled) {
                 agent.SetDestination(targetObject.transform.position);
             }
 
             if (dist < 3.5f) {
-                DoWork(); // Fungsi ini yang dicari baris 27 tadi
+                DoWork();
             }
         }
     }
@@ -54,16 +65,16 @@ public class UnitIdentity : MonoBehaviour
             targetObject.CleanRubble(power);
         }
 
-        // Jika target sudah Aman, lepas target agar bisa balik ke HQ
         if (targetObject.currentStatus == HouseStatus.Aman) {
-            targetObject = null;
+            targetObject = null; // Selesai kerja, target dilepas -> otomatis balik rumah
         }
     }
 
-    public void ReturnToHQ() {
-        isReturningToHQ = true;
-        if(agent != null && hqLocation != null) {
-            agent.SetDestination(hqLocation.position);
+    public void ReturnToHome() {
+        isReturningHome = true;
+        if (agent != null) {
+            agent.isStopped = false;
+            agent.SetDestination(spawnPosition);
         }
     }
 }
