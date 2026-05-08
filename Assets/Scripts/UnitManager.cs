@@ -21,8 +21,8 @@ public class UnitManager : MonoBehaviour
     void SelectUnit(int index) {
         if (index >= allUnits.Count) return;
 
-        // Reset semua unit jadi otomatis dulu
-        foreach (var unit in allUnits) unit.isManualControlled = false;
+        // // Reset semua unit jadi otomatis dulu
+        // foreach (var unit in allUnits) unit.isManualControlled = false;
 
         // Pilih yang baru
         selectedUnit = allUnits[index];

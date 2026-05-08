@@ -38,26 +38,26 @@ public class DisasterUnit : MonoBehaviour
     }
 
     // Fungsi pencari puing otomatis sengaja kita singkirkan atau matikan agar tidak jalan sendiri
-    void FindNearestRubble()
-    {
-        // Menggunakan FindObjectsByType yang baru agar tidak warning
-        Flammable[] allHouses = FindObjectsByType<Flammable>(FindObjectsSortMode.None);
-        float shortestDistance = Mathf.Infinity;
+    // void FindNearestRubble()
+    // {
+    //     // Menggunakan FindObjectsByType yang baru agar tidak warning
+    //     Flammable[] allHouses = FindObjectsByType<Flammable>(FindObjectsSortMode.None);
+    //     float shortestDistance = Mathf.Infinity;
 
-        foreach (Flammable house in allHouses)
-        {
-            if (house.currentStatus == HouseStatus.Puing)
-            {
-                float dist = Vector3.Distance(transform.position, house.transform.position);
-                if (dist < shortestDistance)
-                {
-                    shortestDistance = dist;
-                    targetRubble = house;
-                    agent.SetDestination(targetRubble.transform.position);
-                }
-            }
-        }
-    }
+    //     foreach (Flammable house in allHouses)
+    //     {
+    //         if (house.currentStatus == HouseStatus.Puing)
+    //         {
+    //             float dist = Vector3.Distance(transform.position, house.transform.position);
+    //             if (dist < shortestDistance)
+    //             {
+    //                 shortestDistance = dist;
+    //                 targetRubble = house;
+    //                 agent.SetDestination(targetRubble.transform.position);
+    //             }
+    //         }
+    //     }
+    // }
 
     void CleanProcess()
     {

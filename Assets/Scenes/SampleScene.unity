@@ -371,7 +371,7 @@ MonoBehaviour:
   hqLocation: {fileID: 0}
   power: 20
   targetObject: {fileID: 390226690}
-  isManualControlled: 0
+  isManualControlled: 1
 --- !u!114 &148865135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -855,10 +855,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fd13ac2ad8ab284c80d87ca6724f6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
-  clickLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  activeUnit: {fileID: 1032381837}
   fireTruckPrefab: {fileID: 1032381832}
   spawnPoint: {fileID: 0}
   unitCost: 200
@@ -1167,7 +1163,7 @@ MonoBehaviour:
   hqLocation: {fileID: 0}
   power: 20
   targetObject: {fileID: 390226690}
-  isManualControlled: 0
+  isManualControlled: 1
 --- !u!1 &1063234836
 GameObject:
   m_ObjectHideFlags: 0
@@ -1298,10 +1294,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fd13ac2ad8ab284c80d87ca6724f6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
-  clickLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  activeUnit: {fileID: 1032381838}
   fireTruckPrefab: {fileID: 1032381832}
   spawnPoint: {fileID: 1561694008}
   unitCost: 200
