@@ -1,13 +1,12 @@
 using UnityEngine;
-using UnityEngine.AI; // Wajib untuk gerakin mobil
+using UnityEngine.AI;
 
 public class FireTruck : MonoBehaviour
 {
     public float extinguishPower = 20f;
-    public float stopDistance = 5f; // Jarak tembak air
+    public float stopDistance = 5f;
     
-    private Vector3 targetPosition; // Simpan koordinat tujuan
-    private Flammable targetFire;   // Simpan script rumah tujuan
+    private Flammable targetFire;
     private NavMeshAgent agent;
 
     void Awake()
@@ -15,25 +14,26 @@ public class FireTruck : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
+    // Nama fungsi diganti jadi SetTarget agar klop dengan GridManager!
+    public void SetTarget(Vector3 position)
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(position + Vector3.up * 10, Vector3.down, out hit, 20f))
+        {
+            targetFire = hit.collider.GetComponentInParent<Flammable>();
+        }
+    }
+
     void Update()
     {
-        // 1. Logika Pergerakan: Jika ada target, suruh agent ke sana
-        if (targetPosition != Vector3.zero)
-        {
-            agent.SetDestination(targetPosition);
-        }
-
-        // 2. Logika Menyemprot: Cek jarak ke target rumah
+        // Hanya logika menyemprot jika sudah dekat dengan target rumah terbakar
         if (targetFire != null && targetFire.currentStatus == HouseStatus.Terbakar)
         {
             float distance = Vector3.Distance(transform.position, targetFire.transform.position);
 
             if (distance <= stopDistance)
             {
-                // Berhenti di depan rumah agar tidak tabrakan
                 agent.isStopped = true; 
-                
-                // Panggil fungsi padamkan di Parent
                 targetFire.Extinguish(extinguishPower);
                 Debug.Log("Menyemprot " + targetFire.gameObject.name);
             }
@@ -44,23 +44,7 @@ public class FireTruck : MonoBehaviour
         }
         else
         {
-            // Jika rumah sudah padam (Aman) atau hancur (Puing), mobil berhenti kerja
             if (agent != null) agent.isStopped = false;
-        }
-    }
-
-    // Fungsi yang dipanggil GridManager (Menerima Vector3 agar tidak error lagi)
-    public void SetNewTarget(Vector3 position)
-    {
-        targetPosition = position;
-
-        // Trik agar tahu script Flammable-nya: 
-        // Kita cari script Flammable di lokasi yang kita klik
-        RaycastHit hit;
-        if (Physics.Raycast(position + Vector3.up * 10, Vector3.down, out hit, 20f))
-        {
-            // Pakai GetComponentInParent karena script ada di bapaknya!
-            targetFire = hit.collider.GetComponentInParent<Flammable>();
         }
     }
 }
