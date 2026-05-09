@@ -44,7 +44,7 @@ public class UnitIdentity : MonoBehaviour
 
             float dist = Vector3.Distance(transform.position, targetObject.transform.position);
             
-            // JANGAN JALAN SENDIRI kalau manual. Biarkan GridManager yang gerakin.
+            // belum tau cara kerja dia bisa muncul toggle di unity kayaknya penting tapi gua gapaham samasekali njir beda banget sama html
             if (!isManualControlled) {
                 agent.SetDestination(targetObject.transform.position);
             }

@@ -368,10 +368,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitIdentity
   jenisUnit: 2
-  hqLocation: {fileID: 0}
   power: 20
   targetObject: {fileID: 390226690}
   isManualControlled: 1
+  agent: {fileID: 0}
 --- !u!114 &148865135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1160,10 +1160,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitIdentity
   jenisUnit: 1
-  hqLocation: {fileID: 0}
   power: 20
   targetObject: {fileID: 390226690}
   isManualControlled: 1
+  agent: {fileID: 0}
 --- !u!1 &1063234836
 GameObject:
   m_ObjectHideFlags: 0
