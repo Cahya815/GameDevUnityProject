@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Linq; // Tambahkan ini agar filter array lebih mudah dan stabil
+using System.Linq; 
 
 public class LevelDirector : MonoBehaviour
 {
