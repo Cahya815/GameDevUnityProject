@@ -27,6 +27,19 @@ public class GridManager : MonoBehaviour
 
     void Update()
     {
+
+                // Di dalam Update() script Input lo:
+        if (Input.GetMouseButtonDown(0)) 
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                if (hit.collider.TryGetComponent(out HQController hq))
+                {
+                    hq.OpenMenu();
+                }
+            }
+        }
         // Klik Kiri untuk memerintah unit yang sedang aktif berjalan
         if (Input.GetMouseButtonDown(0)) 
         {
