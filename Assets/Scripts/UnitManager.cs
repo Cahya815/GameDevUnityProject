@@ -7,17 +7,34 @@ public class UnitManager : MonoBehaviour
     public UnitIdentity selectedUnit;
     
     void Update() {
-        // Pilih unit pakai tombol angka
-        if (Input.GetKeyDown(KeyCode.Alpha1)) SelectUnit(0);
-        if (Input.GetKeyDown(KeyCode.Alpha2)) SelectUnit(1);
-        if (Input.GetKeyDown(KeyCode.Alpha3)) SelectUnit(2);
+    // Tombol angka 1-3 buat pilih unit
+    if (Input.GetKeyDown(KeyCode.Alpha1)) SelectUnit(0);
+    if (Input.GetKeyDown(KeyCode.Alpha2)) SelectUnit(1);
+    if (Input.GetKeyDown(KeyCode.Alpha3)) SelectUnit(2);
 
-        // Klik kanan untuk gerakkan unit yang dipilih secara manual
-        if (selectedUnit != null && Input.GetMouseButtonDown(1)) {
-            MoveSelectedUnit();
+    // TOMBOL NETRAL (Misal: Esc atau Alpha0)
+    if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Alpha0)) {
+        DeselectAll();
+    }
+    
+    // Klik kanan gerakin unit
+    if (selectedUnit != null && Input.GetMouseButtonDown(1)) {
+        MoveSelectedUnit();
+    }
+}
+
+public void DeselectAll() {
+    // Kembalikan semua unit ke mode otomatis/pulang
+    foreach (var unit in allUnits) {
+        if (unit != null) {
+            unit.isManualControlled = false;
+            unit.targetObject = null; // Biar dia balik ke posisi awal
         }
     }
-
+    
+    selectedUnit = null; // Kosongkan pilihan
+    Debug.Log("<color=cyan>Semua unit dilepas. Kursor bebas!</color>");
+}
    void SelectUnit(int index) {
     if (index >= allUnits.Count) return;
 
