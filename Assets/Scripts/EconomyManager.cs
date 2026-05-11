@@ -4,6 +4,7 @@ using TMPro;
 public class EconomyManager : MonoBehaviour
 {
     public static EconomyManager instance;
+    private IGameDataHandler _dataHandler;
 
     public float currentMoney = 500f;
     public TextMeshProUGUI moneyDisplay;
@@ -16,7 +17,15 @@ public class EconomyManager : MonoBehaviour
     void Start()
     {
         UpdateUI();
+        _dataHandler = new LocalSaveProvider();
     }
+
+    public async void OnMissionComplete(int apiPadam, float waktu)
+    {
+        // Panggil fungsi simpan tanpa peduli simpan ke mana
+        await _dataHandler.SaveMissionResult("Pemain1", apiPadam, waktu);
+    }
+}
 
     // FUNGSI INI YANG HILANG DAN MENYEBABKAN ERROR
     public bool SpendMoney(float amount)
