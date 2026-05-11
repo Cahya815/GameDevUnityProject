@@ -5,7 +5,7 @@ public class EconomyManager : MonoBehaviour
 {
     public static EconomyManager instance;
 
-    //gatau eror engga
+    //gatau eror engga148
     private int awokawok = 0;
     private IGameDataHandler _dataHandler;
 
