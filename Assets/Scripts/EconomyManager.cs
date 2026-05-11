@@ -6,6 +6,7 @@ public class EconomyManager : MonoBehaviour
     public static EconomyManager instance;
 
     //gatau eror engga
+    private int awokawok = 0;
     private IGameDataHandler _dataHandler;
 
     public float currentMoney = 500f;
