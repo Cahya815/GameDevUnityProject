@@ -36,10 +36,11 @@ public class Flammable : MonoBehaviour
 
     // Fungsi yang dicari LeverDirector
     public void SetToTerbakar() {
-        currentStatus = HouseStatus.Terbakar;
-        fireHealth = 10f;
-        UpdateVisuals();
-    }
+    currentStatus = HouseStatus.Terbakar;
+    fireHealth = 10f;
+    currentBurnTimer = burnOutTimer; // <--- WAJIB: Isi ulang bensin timernya di sini!
+    UpdateVisuals();
+}
 
     public void Extinguish(float p) {
         if (currentStatus == HouseStatus.Terbakar) {
