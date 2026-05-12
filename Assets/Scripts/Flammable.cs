@@ -46,6 +46,10 @@ public class Flammable : MonoBehaviour
             fireHealth -= p * Time.deltaTime;
             if (fireHealth <= 0) {
                 SetToAman();
+                // COLOKAN: Beritahu backend/economy satu api berhasil padam
+                if (EconomyManager.instance != null) {
+                    EconomyManager.instance.OnMissionComplete(1, 0); // 1 api padam
+                }
             }
         }
     }
@@ -54,6 +58,13 @@ public class Flammable : MonoBehaviour
         if (currentStatus == HouseStatus.Puing) {
             SetToAman();
             Debug.Log("<color=orange>Puing dibersihkan!</color>");
+            
+            // COLOKAN: Berikan uang/skor karena sudah membersihkan puing
+            if (EconomyManager.instance != null) {
+                EconomyManager.instance.AddMoney(50f); // Contoh: dapat $50
+                // Jika ingin simpan ke backend setiap bersih puing:
+                // EconomyManager.instance.OnMissionComplete(0, 0); 
+            }
         }
     }
 
