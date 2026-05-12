@@ -10,7 +10,7 @@ public class HQController : MonoBehaviour
     public void OpenMenu()
     {
         // Panggil Manager UI (kita buat di bawah)
-        HQUIManager.instance.ShowMenu(this);
+        HQUIManager.instance.OpenMenu(this);
     }
 
     public void Interact() {
@@ -20,7 +20,7 @@ public class HQController : MonoBehaviour
     if (FindObjectOfType<TutorialManager>() != null) {
         FindObjectOfType<TutorialManager>().NextStep();
     }
-}
+}   
 
     public void UpgradeBuilding()
     {

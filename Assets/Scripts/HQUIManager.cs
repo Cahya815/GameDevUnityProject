@@ -12,12 +12,20 @@ public class HQUIManager : MonoBehaviour
 
     void Awake() { instance = this; menuPanel.SetActive(false); }
 
-    public void ShowMenu(HQController hq)
+    public void OpenMenu(HQController hq)
+{
+    currentHQ = hq;
+    menuPanel.SetActive(true);
+    UpdateUI();
+
+    // LAPOR KE TUTORIAL: "Woi, menu sudah dibuka nih!"
+    // Pakai FindFirstObjectByType karena lo pakai Unity versi terbaru
+    TutorialManager tutor = Object.FindFirstObjectByType<TutorialManager>();
+    if (tutor != null && tutor.step == 1) // Sesuaikan angka step-nya
     {
-        currentHQ = hq;
-        menuPanel.SetActive(true);
-        UpdateUI();
+        tutor.NextStep();
     }
+}
 
     public void UpdateUI()
     {

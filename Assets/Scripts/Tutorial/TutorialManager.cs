@@ -8,7 +8,7 @@ public class TutorialManager : MonoBehaviour
     public TextMeshProUGUI tutorialText;
     public Button nextButton;
     
-    private int step = 0;
+    public int step = 0;
 
     void Start() {
         ShowStep();
@@ -27,6 +27,7 @@ public class TutorialManager : MonoBehaviour
                 break;
             case 2:
                 tutorialText.text = "Bagus! Sekarang coba tekan tombol UPGRADE.";
+                nextButton.gameObject.SetActive(true);
                 break;
             default:
                 EndTutorial();
@@ -40,6 +41,11 @@ public class TutorialManager : MonoBehaviour
     }
 
     void EndTutorial() {
+    
+        tutorialText.text = ""; // Kosongkan teks agar tidak nyangkut
+        nextButton.gameObject.SetActive(false); 
+        tutorialPanel.SetActive(false);
+        Debug.Log("Tutorial Selesai!");
         tutorialPanel.SetActive(false);
         Debug.Log("Tutorial Selesai!");
     }
