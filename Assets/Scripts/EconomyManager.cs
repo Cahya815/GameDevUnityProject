@@ -17,9 +17,12 @@ public class EconomyManager : MonoBehaviour
 
     void Start()
     {
+    //     UpdateUI();
+    //     // Setup provider (Sementara local)
+    //     _dataHandler = new LocalSaveProvider();
+    // }
         UpdateUI();
-        // Setup provider (Sementara local)
-        _dataHandler = new LocalSaveProvider();
+        _dataHandler = new SupabaseProvider(); // Ganti ke Supabase
     }
 
     public async void OnMissionComplete(int apiPadam, float waktu)
