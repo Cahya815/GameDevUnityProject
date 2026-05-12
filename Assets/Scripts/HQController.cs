@@ -13,6 +13,15 @@ public class HQController : MonoBehaviour
         HQUIManager.instance.ShowMenu(this);
     }
 
+    public void Interact() {
+    HQUIManager.instance.OpenMenu(this);
+
+    // Jika sedang tutorial step 1, lanjut ke step berikutnya
+    if (FindObjectOfType<TutorialManager>() != null) {
+        FindObjectOfType<TutorialManager>().NextStep();
+    }
+}
+
     public void UpgradeBuilding()
     {
         level++;
