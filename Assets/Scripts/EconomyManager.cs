@@ -5,8 +5,6 @@ public class EconomyManager : MonoBehaviour
 {
     public static EconomyManager instance;
 
-    //gatau eror engga148
-    private int awokawok = 0;
     private IGameDataHandler _dataHandler;
 
     public float currentMoney = 500f;
@@ -20,17 +18,21 @@ public class EconomyManager : MonoBehaviour
     void Start()
     {
         UpdateUI();
+        // Setup provider (Sementara local)
         _dataHandler = new LocalSaveProvider();
     }
 
     public async void OnMissionComplete(int apiPadam, float waktu)
     {
-        // Panggil fungsi simpan tanpa peduli simpan ke mana
-        await _dataHandler.SaveMissionResult("Pemain1", apiPadam, waktu);
-    }
-}
+        // Hitung bonus uang berdasarkan api yang padam
+        float bonus = apiPadam * 10f; 
+        AddMoney(bonus);
 
-    // FUNGSI INI YANG HILANG DAN MENYEBABKAN ERROR
+        // Simpan data ke "Backend" (Local/Cloud)
+        await _dataHandler.SaveMissionResult("Pemain1", apiPadam, waktu);
+        Debug.Log($"Misi Selesai! Dapat bonus: ${bonus}");
+    }
+
     public bool SpendMoney(float amount)
     {
         if (currentMoney >= amount)
@@ -39,11 +41,9 @@ public class EconomyManager : MonoBehaviour
             UpdateUI();
             return true;
         }
-        else
-        {
-            Debug.Log("<color=red>Uang tidak cukup!</color>");
-            return false;
-        }
+        
+        Debug.Log("<color=red>Uang tidak cukup!</color>");
+        return false;
     }
 
     public void AddMoney(float amount)
@@ -57,4 +57,4 @@ public class EconomyManager : MonoBehaviour
         if (moneyDisplay != null)
             moneyDisplay.text = "Money: $" + currentMoney.ToString("F0");
     }
-}
+} // <--- Pastikan hanya ada satu kurung tutup di paling akhir class
