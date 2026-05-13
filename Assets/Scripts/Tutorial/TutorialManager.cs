@@ -10,9 +10,21 @@ public class TutorialManager : MonoBehaviour
     
     public int step = 0;
 
-    void Start() {
+
+    public static bool isTutorialActive = false;
+
+     void Start() {
         ShowStep();
     }
+
+    public void StartTutorial() {
+        isTutorialActive = true;
+        ShowStep();
+    }
+
+
+
+   
 
     public void ShowStep() {
         tutorialPanel.SetActive(true);

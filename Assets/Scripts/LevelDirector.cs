@@ -23,12 +23,18 @@ public class LevelDirector : MonoBehaviour
     void Update()
     {
         timer += Time.deltaTime;
+
+        if (TutorialManager.isTutorialActive) return; // Api nggak bakal spawn
+        
+        timer += Time.deltaTime;
+        
         if (timer >= nextFireIn)
         {
             TriggerFire();
             SetDifficulty(); 
             timer = 0;
         }
+        
     }
 
     void SetDifficulty()
