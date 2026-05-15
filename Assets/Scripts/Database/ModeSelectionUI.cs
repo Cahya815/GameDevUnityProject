@@ -10,12 +10,26 @@ public class ModeSelectionUI : MonoBehaviour
 
     private void Start()
     {
+        // Pastikan AuthManager ada
+        if (AuthManager.instance == null)
+        {
+            Debug.LogError("AuthManager tidak ditemukan!");
+            return;
+        }
+
         modePanel.SetActive(true);
         loginPanel.SetActive(false);
     }
 
     public void OnOnlineModeClicked()
     {
+        string name = playerNameInput.text;
+        if (string.IsNullOrEmpty(name))
+        {
+            Debug.LogWarning("Username tidak boleh kosong!");
+            return;
+        }
+
         modePanel.SetActive(false);
         loginPanel.SetActive(true);
     }
@@ -44,5 +58,11 @@ public class ModeSelectionUI : MonoBehaviour
 
         await AuthManager.instance.LoginOnline(name, "password");
         SceneManager.LoadScene("GameScene");
+    }
+
+    public void OnBackClicked()
+    {
+        loginPanel.SetActive(false);
+        modePanel.SetActive(true);
     }
 }

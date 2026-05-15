@@ -7,11 +7,12 @@ public class TutorialManager : MonoBehaviour
     public GameObject tutorialPanel;
     public TextMeshProUGUI tutorialText;
     public Button nextButton;
+    public static bool isTutorialActive = false;
+    public GameObject modeSelectionUI; // Tambah referensi ke ModeSelectionUI
     
     public int step = 0;
 
 
-    public static bool isTutorialActive = false;
 
      void Start() {
         ShowStep();

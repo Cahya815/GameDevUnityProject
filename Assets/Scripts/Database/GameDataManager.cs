@@ -7,6 +7,12 @@ public class GameDataManager : MonoBehaviour
 
     private void Start()
     {
+        if (AuthManager.instance == null)
+        {
+            Debug.LogError("AuthManager tidak ditemukan!");
+            return;
+        }
+
         if (AuthManager.instance.isOnlineMode)
         {
             _dataHandler = new SupabaseProvider();
@@ -21,6 +27,12 @@ public class GameDataManager : MonoBehaviour
 
     public async void SaveGameResult(int firesExtinguished, float duration)
     {
+        if (AuthManager.instance == null || _dataHandler == null)
+        {
+            Debug.LogError("Data handler belum diinisialisasi!");
+            return;
+        }
+
         string playerName = AuthManager.instance.playerName;
         await _dataHandler.SaveMissionResult(playerName, firesExtinguished, duration);
     }
