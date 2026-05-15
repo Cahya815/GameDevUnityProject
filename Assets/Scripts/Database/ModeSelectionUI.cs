@@ -9,17 +9,24 @@ public class ModeSelectionUI : MonoBehaviour
     public GameObject modePanel;
 
     private void Start()
+{
+    // Pastikan AuthManager ada
+    if (AuthManager.instance == null)
     {
-        // Pastikan AuthManager ada
-        if (AuthManager.instance == null)
-        {
-            Debug.LogError("AuthManager tidak ditemukan!");
-            return;
-        }
-
-        modePanel.SetActive(true);
-        loginPanel.SetActive(false);
+        Debug.LogError("AuthManager tidak ditemukan!");
+        return;
     }
+
+    // Jangan aktifkan panel di sini, biarkan TutorialManager yang handle
+    modePanel.SetActive(false);
+    loginPanel.SetActive(false);
+}
+
+public void ShowModeSelection()
+{
+    modePanel.SetActive(true);
+    loginPanel.SetActive(false);
+}
 
     public void OnOnlineModeClicked()
     {

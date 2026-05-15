@@ -61,5 +61,20 @@ public class TutorialManager : MonoBehaviour
         Debug.Log("Tutorial Selesai!");
         tutorialPanel.SetActive(false);
         Debug.Log("Tutorial Selesai!");
+         
+         isTutorialActive = false;
+        tutorialPanel.SetActive(false);
+        step = 0;
+        
+        // Tampilkan Mode Selection setelah tutorial selesai
+        if (modeSelectionUI != null)
+        {
+            ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
+            if (modeUI != null)
+            {
+                modeUI.ShowModeSelection();
+            }
+        }
+
     }
 }
