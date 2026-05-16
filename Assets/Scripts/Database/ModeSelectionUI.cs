@@ -42,30 +42,32 @@ public void ShowModeSelection()
     }
 
     public void OnOfflineModeClicked()
+{
+    string name = playerNameInput.text;
+    if (string.IsNullOrEmpty(name))
     {
-        string name = playerNameInput.text;
-        if (string.IsNullOrEmpty(name))
-        {
-            Debug.LogWarning("Nama pemain tidak boleh kosong!");
-            return;
-        }
-
-        AuthManager.instance.SelectOfflineMode(name);
-        SceneManager.LoadScene("GameScene");
+        Debug.LogWarning("Nama pemain tidak boleh kosong!");
+        return;
     }
+
+    AuthManager.instance.SelectOfflineMode(name);
+    GameDataManager.instance.InitializeDataHandler();
+    SceneManager.LoadScene("GameScene");
+}
 
     public async void OnLoginClicked()
+{
+    string name = playerNameInput.text;
+    if (string.IsNullOrEmpty(name))
     {
-        string name = playerNameInput.text;
-        if (string.IsNullOrEmpty(name))
-        {
-            Debug.LogWarning("Username tidak boleh kosong!");
-            return;
-        }
-
-        await AuthManager.instance.LoginOnline(name, "password");
-        SceneManager.LoadScene("GameScene");
+        Debug.LogWarning("Username tidak boleh kosong!");
+        return;
     }
+
+    await AuthManager.instance.LoginOnline(name, "password");
+    GameDataManager.instance.InitializeDataHandler();
+    SceneManager.LoadScene("GameScene");
+}
 
     public void OnBackClicked()
     {

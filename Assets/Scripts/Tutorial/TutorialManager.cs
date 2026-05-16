@@ -36,12 +36,16 @@ public class TutorialManager : MonoBehaviour
                 break;
             case 1:
                 tutorialText.text = "Klik HQ untuk melihat status dan menu upgrade.";
-                nextButton.gameObject.SetActive(false); // Sembunyikan tombol 'Next' biar pemain dipaksa klik HQ
+                nextButton.gameObject.SetActive(true); // Sembunyikan tombol 'Next' biar pemain dipaksa klik HQ
                 break;
             case 2:
                 tutorialText.text = "Bagus! Sekarang coba tekan tombol UPGRADE.";
                 nextButton.gameObject.SetActive(true);
                 break;
+             case 3:
+                EndTutorial();
+                break;
+
             default:
                 EndTutorial();
                 break;
@@ -54,7 +58,15 @@ public class TutorialManager : MonoBehaviour
     }
 
     void EndTutorial() {
-    
+        // Tampilkan Mode Selection setelah tutorial selesai
+        if (modeSelectionUI != null)
+        {
+            ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
+            if (modeUI != null)
+            {
+                modeUI.ShowModeSelection();
+            }
+        }
         tutorialText.text = ""; // Kosongkan teks agar tidak nyangkut
         nextButton.gameObject.SetActive(false); 
         tutorialPanel.SetActive(false);
@@ -66,15 +78,7 @@ public class TutorialManager : MonoBehaviour
         tutorialPanel.SetActive(false);
         step = 0;
         
-        // Tampilkan Mode Selection setelah tutorial selesai
-        if (modeSelectionUI != null)
-        {
-            ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
-            if (modeUI != null)
-            {
-                modeUI.ShowModeSelection();
-            }
-        }
+        
 
     }
 }

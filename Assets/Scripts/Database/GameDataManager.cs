@@ -3,9 +3,29 @@ using System.Threading.Tasks;
 
 public class GameDataManager : MonoBehaviour
 {
+    public static GameDataManager instance;
     private IGameDataHandler _dataHandler;
 
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     private void Start()
+    {
+        // Jangan inisialisasi di Start, tunggu sampai mode dipilih
+        Debug.Log("GameDataManager siap menunggu mode selection");
+    }
+
+    public void InitializeDataHandler()
     {
         if (AuthManager.instance == null)
         {
@@ -27,7 +47,7 @@ public class GameDataManager : MonoBehaviour
 
     public async void SaveGameResult(int firesExtinguished, float duration)
     {
-        if (AuthManager.instance == null || _dataHandler == null)
+        if (_dataHandler == null)
         {
             Debug.LogError("Data handler belum diinisialisasi!");
             return;
