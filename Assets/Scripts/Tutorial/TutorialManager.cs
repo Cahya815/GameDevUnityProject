@@ -58,15 +58,15 @@ public class TutorialManager : MonoBehaviour
     }
 
     void EndTutorial() {
-        // Tampilkan Mode Selection setelah tutorial selesai
-        if (modeSelectionUI != null)
-        {
-            ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
-            if (modeUI != null)
-            {
-                modeUI.ShowModeSelection();
-            }
-        }
+        isTutorialActive = false;
+    tutorialPanel.SetActive(false);
+    step = 0;
+    
+    // Tampilkan Mode Selection setelah tutorial selesai
+    if (modeSelectionUI != null)
+    {
+        StartCoroutine(ShowModeSelectionDelayed());
+    }
         tutorialText.text = ""; // Kosongkan teks agar tidak nyangkut
         nextButton.gameObject.SetActive(false); 
         tutorialPanel.SetActive(false);
@@ -81,4 +81,19 @@ public class TutorialManager : MonoBehaviour
         
 
     }
+    private System.Collections.IEnumerator ShowModeSelectionDelayed()
+{
+    yield return new WaitForSeconds(0.5f); // Delay 0.5 detik
+    
+    ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
+    if (modeUI != null)
+    {
+        modeUI.ShowModeSelection();
+        Debug.Log("<color=green>Mode Selection Panel ditampilkan</color>");
+    }
+    else
+    {
+        Debug.LogError("ModeSelectionUI component tidak ditemukan!");
+    }
+}
 }
