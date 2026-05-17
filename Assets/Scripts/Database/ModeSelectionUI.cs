@@ -25,7 +25,7 @@ public class ModeSelectionUI : MonoBehaviour
 public void ShowModeSelection()
 {
     modePanel.SetActive(true);
-    loginPanel.SetActive(false);
+    loginPanel.SetActive(true);
 }
 
     public void OnOnlineModeClicked()
@@ -38,7 +38,7 @@ public void ShowModeSelection()
         }
 
         modePanel.SetActive(false);
-        loginPanel.SetActive(true);
+        loginPanel.SetActive(false);
     }
 
     public void OnOfflineModeClicked()
@@ -52,7 +52,9 @@ public void ShowModeSelection()
 
     AuthManager.instance.SelectOfflineMode(name);
     GameDataManager.instance.InitializeDataHandler();
-    SceneManager.LoadScene("GameScene");
+    SceneManager.LoadScene("SampleScene"); // Ganti dengan nama scene yang ada
+    modePanel.SetActive(false);
+    loginPanel.SetActive(false);
 }
 
     public async void OnLoginClicked()
@@ -66,7 +68,7 @@ public void ShowModeSelection()
 
     await AuthManager.instance.LoginOnline(name, "password");
     GameDataManager.instance.InitializeDataHandler();
-    SceneManager.LoadScene("GameScene");
+    SceneManager.LoadScene("SampleScene");
 }
 
     public void OnBackClicked()
