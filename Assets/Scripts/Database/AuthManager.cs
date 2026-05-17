@@ -7,18 +7,18 @@ public class AuthManager : MonoBehaviour
     public string playerName { get; private set; }
     public bool isOnlineMode { get; private set; }
 
-    private void Awake()
+   private void Awake()
+{
+    if (instance == null)
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        instance = this;
+        // Hapus DontDestroyOnLoad - biarkan destroy saat scene load
     }
+    else
+    {
+        Destroy(gameObject);
+    }
+}
 
     public async Task LoginOnline(string username, string password)
     {

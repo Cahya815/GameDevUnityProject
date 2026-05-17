@@ -1,23 +1,29 @@
 using UnityEngine;
 using System.Threading.Tasks;
 
+public static class GameSession
+{
+    public static string playerName;
+    public static bool isOnlineMode;
+}
+
 public class GameDataManager : MonoBehaviour
 {
     public static GameDataManager instance;
     private IGameDataHandler _dataHandler;
 
     private void Awake()
+{
+    if (instance == null)
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        instance = this;
+        // Hapus DontDestroyOnLoad
     }
+    else
+    {
+        Destroy(gameObject);
+    }
+}
 
     private void Start()
     {

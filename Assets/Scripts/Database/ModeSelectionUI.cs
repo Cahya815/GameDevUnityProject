@@ -52,9 +52,12 @@ public void ShowModeSelection()
 
     AuthManager.instance.SelectOfflineMode(name);
     GameDataManager.instance.InitializeDataHandler();
-    SceneManager.LoadScene("SampleScene"); // Ganti dengan nama scene yang ada
+    
+    // Sembunyikan panel sebelum load scene
     modePanel.SetActive(false);
     loginPanel.SetActive(false);
+    
+    SceneManager.LoadScene("SampleScene");
 }
 
     public async void OnLoginClicked()

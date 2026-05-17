@@ -8,92 +8,94 @@ public class TutorialManager : MonoBehaviour
     public TextMeshProUGUI tutorialText;
     public Button nextButton;
     public static bool isTutorialActive = false;
-    public GameObject modeSelectionUI; // Tambah referensi ke ModeSelectionUI
+    public GameObject modeSelectionUI;
     
     public int step = 0;
+    private bool tutorialCompleted = false;
 
+    void Start()
+    {
+        // Cek apakah tutorial sudah pernah selesai
+        // if (PlayerPrefs.GetInt("TutorialCompleted", 0) == 1)
+        // {
+        //     tutorialPanel.SetActive(false);
+        //     tutorialCompleted = true;
+        //     Debug.Log("Tutorial sudah selesai sebelumnya, skip tutorial");
+        //     return;
+        // }
 
-
-     void Start() {
         ShowStep();
     }
 
-    public void StartTutorial() {
+    public void StartTutorial()
+    {
+        if (tutorialCompleted) return;
+        
         isTutorialActive = true;
         ShowStep();
     }
 
+    public void NextStep()
+    {
+        step++;
+        ShowStep();
+    }
 
-
-   
-
-    public void ShowStep() {
+    public void ShowStep()
+    {
         tutorialPanel.SetActive(true);
-        switch (step) {
+        switch (step)
+        {
             case 0:
                 tutorialText.text = "Selamat datang, Komandan! Ini adalah markas HQ lo.";
-                // Highlight HQ
                 break;
             case 1:
                 tutorialText.text = "Klik HQ untuk melihat status dan menu upgrade.";
-                nextButton.gameObject.SetActive(true); // Sembunyikan tombol 'Next' biar pemain dipaksa klik HQ
+                nextButton.gameObject.SetActive(true);
                 break;
             case 2:
                 tutorialText.text = "Bagus! Sekarang coba tekan tombol UPGRADE.";
                 nextButton.gameObject.SetActive(true);
                 break;
-             case 3:
+            case 3:
                 EndTutorial();
                 break;
-
             default:
                 EndTutorial();
                 break;
         }
     }
 
-    public void NextStep() {
-        step++;
-        ShowStep();
-    }
-
-    void EndTutorial() {
+    void EndTutorial()
+    {
         isTutorialActive = false;
-    tutorialPanel.SetActive(false);
-    step = 0;
-    
-    // Tampilkan Mode Selection setelah tutorial selesai
-    if (modeSelectionUI != null)
-    {
-        StartCoroutine(ShowModeSelectionDelayed());
-    }
-        tutorialText.text = ""; // Kosongkan teks agar tidak nyangkut
-        nextButton.gameObject.SetActive(false); 
         tutorialPanel.SetActive(false);
-        Debug.Log("Tutorial Selesai!");
-        tutorialPanel.SetActive(false);
-        Debug.Log("Tutorial Selesai!");
-         
-         isTutorialActive = false;
-        tutorialPanel.SetActive(false);
+        tutorialText.text = "";
+        nextButton.gameObject.SetActive(false);
         step = 0;
+        tutorialCompleted = true;
         
+        // Simpan bahwa tutorial sudah selesai
+        PlayerPrefs.SetInt("TutorialCompleted", 1);
+        PlayerPrefs.Save();
         
+        Debug.Log("Tutorial Selesai!");
+        
+        if (modeSelectionUI != null)
+        {
+            StartCoroutine(ShowModeSelectionDelayed());
+        }
+    }
 
-    }
     private System.Collections.IEnumerator ShowModeSelectionDelayed()
-{
-    yield return new WaitForSeconds(0.5f); // Delay 0.5 detik
-    
-    ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
-    if (modeUI != null)
     {
-        modeUI.ShowModeSelection();
-        Debug.Log("<color=green>Mode Selection Panel ditampilkan</color>");
+        yield return new WaitForSeconds(0.5f);
+        
+        ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
+        if (modeUI != null)
+        {
+            modeUI.ShowModeSelection();
+            Debug.Log("<color=green>Mode Selection Panel ditampilkan</color>");
+        }
     }
-    else
-    {
-        Debug.LogError("ModeSelectionUI component tidak ditemukan!");
-    }
-}
 }
