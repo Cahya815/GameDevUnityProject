@@ -5107,10 +5107,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be53b23790460fc4e8822b411a33f4aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Flammable
+  burnOutTimer: 30
   currentStatus: 0
   isBurning: 0
   fireHealth: 100
-  burnOutTimer: 10
-  fireEffect: {fileID: 3957061215619880891}
-  meshNormal: {fileID: 438613369820793279}
-  meshPuing: {fileID: 1061175277844052299}
+  fireEffect: {fileID: 0}
+  meshNormal: {fileID: 0}
+  meshPuing: {fileID: 0}

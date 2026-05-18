@@ -39,7 +39,7 @@ public class LevelDirector : MonoBehaviour
 
     void SetDifficulty()
     {
-        if (currentLevel == 1) nextFireIn = Random.Range(15f, 25f);
+        if (currentLevel == 1) nextFireIn = Random.Range(1f, 2f);
         else if (currentLevel == 2) nextFireIn = Random.Range(10f, 15f);
         else nextFireIn = Random.Range(5f, 10f);
     }
