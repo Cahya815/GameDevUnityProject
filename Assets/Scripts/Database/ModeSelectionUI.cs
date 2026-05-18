@@ -57,7 +57,7 @@ public void ShowModeSelection()
     modePanel.SetActive(false);
     loginPanel.SetActive(false);
     
-    SceneManager.LoadScene("SampleScene");
+    
 }
 
     public async void OnLoginClicked()
