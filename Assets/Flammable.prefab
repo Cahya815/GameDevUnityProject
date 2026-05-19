@@ -5108,9 +5108,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Flammable
   burnOutTimer: 30
+  isActive: 1
   currentStatus: 0
   isBurning: 0
-  fireHealth: 100
-  fireEffect: {fileID: 0}
-  meshNormal: {fileID: 0}
-  meshPuing: {fileID: 0}
+  fireHealth: 10
+  fireEffect: {fileID: 2925475062389121904}
+  meshNormal: {fileID: 438613369820793279}
+  meshPuing: {fileID: 1061175277844052299}

@@ -798,7 +798,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &142701077
 Transform:
   m_ObjectHideFlags: 0
@@ -979,7 +979,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitIdentity
   jenisUnit: 2
   power: 20
-  targetObject: {fileID: 390226690}
+  targetObject: {fileID: 0}
   isManualControlled: 1
   agent: {fileID: 0}
 --- !u!114 &148865135
@@ -1378,17 +1378,6 @@ Transform:
   - {fileID: 1271414345}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &390226690 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 2087933849}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be53b23790460fc4e8822b411a33f4aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Flammable
 --- !u!1 &436605626
 GameObject:
   m_ObjectHideFlags: 0
@@ -1509,7 +1498,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &603175594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1522,8 +1511,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1ef005800faed54ab6b129e61da2b05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireManager
-  allHouses: []
-  fireInterval: 20
 --- !u!4 &603175595
 Transform:
   m_ObjectHideFlags: 0
@@ -2232,10 +2219,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: Flammable (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5713248698533436926, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: isActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: meshPuing
+      value: 
+      objectReference: {fileID: 1375695639}
     - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
       propertyPath: fireEffect
       value: 
       objectReference: {fileID: 1066242521}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: meshNormal
+      value: 
+      objectReference: {fileID: 1785146554}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2256,6 +2263,7 @@ GameObject:
   - component: {fileID: 826729328}
   - component: {fileID: 826729327}
   - component: {fileID: 826729326}
+  - component: {fileID: 826729329}
   m_Layer: 0
   m_Name: GameManajer
   m_TagString: Untagged
@@ -2364,6 +2372,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 706f691a24996e343a740a0fcbba4a04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AuthManager
+--- !u!114 &826729329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826729321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd755013664d17a4ca1dfd708beeefcf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelDirector
+  currentLevel: 1
+  allHouses: []
 --- !u!1 &846853284
 GameObject:
   m_ObjectHideFlags: 0
@@ -2911,7 +2933,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitIdentity
   jenisUnit: 1
   power: 20
-  targetObject: {fileID: 390226690}
+  targetObject: {fileID: 0}
   isManualControlled: 1
   agent: {fileID: 0}
 --- !u!1 &1042448503
@@ -3666,6 +3688,16 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &1375695639 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1061175277844052299, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+  m_PrefabInstance: {fileID: 821913175}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1394098279 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 438613369820793279, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+  m_PrefabInstance: {fileID: 2087933849}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1480624355
 GameObject:
   m_ObjectHideFlags: 0
@@ -4196,6 +4228,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1621234670}
   m_CullTransparentMesh: 1
+--- !u!1 &1663492433 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1061175277844052299, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+  m_PrefabInstance: {fileID: 2087933849}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1683861323
 GameObject:
   m_ObjectHideFlags: 0
@@ -4330,6 +4367,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1683861323}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1785146554 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 438613369820793279, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+  m_PrefabInstance: {fileID: 821913175}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1930449647
 GameObject:
   m_ObjectHideFlags: 0
@@ -4648,6 +4690,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Flammable
       objectReference: {fileID: 0}
+    - target: {fileID: 5713248698533436926, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: isActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: meshPuing
+      value: 
+      objectReference: {fileID: 1663492433}
     - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
       propertyPath: fireEffect
       value: 
@@ -4656,6 +4714,10 @@ PrefabInstance:
       propertyPath: fireHealth
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
+      propertyPath: meshNormal
+      value: 
+      objectReference: {fileID: 1394098279}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

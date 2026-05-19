@@ -24,6 +24,7 @@ public class TutorialManager : MonoBehaviour
         //     return;
         // }
 
+        isTutorialActive = true; // Pastikan status tutorial aktif saat mulai
         ShowStep();
     }
 
@@ -68,7 +69,7 @@ public class TutorialManager : MonoBehaviour
 
     void EndTutorial()
     {
-        isTutorialActive = false;
+        // JANGAN ubah isTutorialActive = false di sini. Biarkan ModeSelectionUI yang mematikannya nanti.
         tutorialPanel.SetActive(false);
         tutorialText.text = "";
         nextButton.gameObject.SetActive(false);
@@ -84,6 +85,11 @@ public class TutorialManager : MonoBehaviour
         if (modeSelectionUI != null)
         {
             StartCoroutine(ShowModeSelectionDelayed());
+        }
+        else 
+        {
+            // Kalau misal gak ada UI mode selection, langsung matikan saja
+            isTutorialActive = false;
         }
     }
 

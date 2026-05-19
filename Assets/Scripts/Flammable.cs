@@ -4,7 +4,7 @@ public class Flammable : MonoBehaviour
 {
     [Header("Timer Settings")]
     public float burnOutTimer = 30f; // Waktu total sampai jadi puing
-    private float currentBurnTimer;  // VARIABEL INI YANG HILANG TADI
+    private float currentBurnTimer;
 
     [Header("Status")]
     public HouseStatus currentStatus = HouseStatus.Aman;
@@ -22,10 +22,16 @@ public class Flammable : MonoBehaviour
     }
 
     void Update() {
+        // Jika tutorial aktif, script ini akan diam total dan tidak menghitung timer
+        if (TutorialManager.isTutorialActive) {
+            isBurning = false;
+            return;
+        }
+
         isBurning = (currentStatus == HouseStatus.Terbakar);
 
         if (currentStatus == HouseStatus.Terbakar) {
-            currentBurnTimer -= Time.deltaTime; // Sekarang variabel ini sudah ada
+            currentBurnTimer -= Time.deltaTime; 
 
             if (currentBurnTimer <= 0) {
                 currentBurnTimer = 0; 
@@ -36,13 +42,17 @@ public class Flammable : MonoBehaviour
 
     // Fungsi yang dicari LeverDirector
     public void SetToTerbakar() {
-    currentStatus = HouseStatus.Terbakar;
-    fireHealth = 10f;
-    currentBurnTimer = burnOutTimer; // <--- WAJIB: Isi ulang bensin timernya di sini!
-    UpdateVisuals();
-}
+        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+
+        currentStatus = HouseStatus.Terbakar;
+        fireHealth = 10f;
+        currentBurnTimer = burnOutTimer; // <--- WAJIB: Isi ulang bensin timernya di sini!
+        UpdateVisuals();
+    }
 
     public void Extinguish(float p) {
+        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+
         if (currentStatus == HouseStatus.Terbakar) {
             fireHealth -= p * Time.deltaTime;
             if (fireHealth <= 0) {
@@ -56,6 +66,8 @@ public class Flammable : MonoBehaviour
     }
 
     public void CleanRubble(float s) {
+        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+
         if (currentStatus == HouseStatus.Puing) {
             SetToAman();
             Debug.Log("<color=orange>Puing dibersihkan!</color>");
@@ -63,13 +75,13 @@ public class Flammable : MonoBehaviour
             // COLOKAN: Berikan uang/skor karena sudah membersihkan puing
             if (EconomyManager.instance != null) {
                 EconomyManager.instance.AddMoney(50f); // Contoh: dapat $50
-                // Jika ingin simpan ke backend setiap bersih puing:
-                // EconomyManager.instance.OnMissionComplete(0, 0); 
             }
         }
     }
 
     public void SetToAman() {
+        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+
         currentStatus = HouseStatus.Aman;
         fireHealth = 0;
         UpdateVisuals();
@@ -81,6 +93,12 @@ public class Flammable : MonoBehaviour
         if (fireEffect != null) fireEffect.SetActive(false);
         if (meshNormal != null) meshNormal.SetActive(false);
         if (meshPuing != null) meshPuing.SetActive(false);
+
+        // Jika tutorial aktif, paksa tampilkan rumah normal saja dan sembunyikan api
+        if (TutorialManager.isTutorialActive) {
+            if (meshNormal != null) meshNormal.SetActive(true);
+            return; // Berhenti di sini
+        }
 
         // Nyalakan yang HANYA dibutuhkan sesuai status
         switch (currentStatus) {
@@ -100,6 +118,8 @@ public class Flammable : MonoBehaviour
     }
 
     public void SetToPuing() {
+        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+
         currentStatus = HouseStatus.Puing;
         fireHealth = 0;
         UpdateVisuals();

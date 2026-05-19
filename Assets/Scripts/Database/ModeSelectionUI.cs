@@ -53,6 +53,9 @@ public void ShowModeSelection()
     AuthManager.instance.SelectOfflineMode(name);
     GameDataManager.instance.InitializeDataHandler();
     
+    // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
+    TutorialManager.isTutorialActive = false;
+    
     // Sembunyikan panel sebelum load scene
     modePanel.SetActive(false);
     loginPanel.SetActive(false);
@@ -71,6 +74,10 @@ public void ShowModeSelection()
 
     await AuthManager.instance.LoginOnline(name, "password");
     GameDataManager.instance.InitializeDataHandler();
+    
+    // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
+    TutorialManager.isTutorialActive = false;
+    
     SceneManager.LoadScene("SampleScene");
 }
 
