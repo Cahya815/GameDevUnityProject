@@ -37,6 +37,12 @@ public void ShowModeSelection()
             return;
         }
 
+        var _ = AuthManager.instance.LoginOnline(name, "password");
+        GameDataManager.instance.InitializeDataHandler();
+        
+        // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
+        TutorialManager.isTutorialActive = false;
+
         modePanel.SetActive(false);
         loginPanel.SetActive(false);
     }
@@ -64,22 +70,23 @@ public void ShowModeSelection()
 }
 
     public async void OnLoginClicked()
-{
-    string name = playerNameInput.text;
-    if (string.IsNullOrEmpty(name))
     {
-        Debug.LogWarning("Username tidak boleh kosong!");
-        return;
-    }
+        string name = playerNameInput.text;
+        if (string.IsNullOrEmpty(name))
+        {
+            Debug.LogWarning("Username tidak boleh kosong!");
+            return;
+        }
 
-    await AuthManager.instance.LoginOnline(name, "password");
-    GameDataManager.instance.InitializeDataHandler();
-    
-    // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
-    TutorialManager.isTutorialActive = false;
-    
-    SceneManager.LoadScene("SampleScene");
-}
+        await AuthManager.instance.LoginOnline(name, "password");
+        GameDataManager.instance.InitializeDataHandler();
+        
+        // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
+        TutorialManager.isTutorialActive = false;
+        
+        modePanel.SetActive(false);
+        loginPanel.SetActive(false);
+    }
 
     public void OnBackClicked()
     {

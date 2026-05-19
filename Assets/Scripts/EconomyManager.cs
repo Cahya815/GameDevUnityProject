@@ -17,12 +17,18 @@ public class EconomyManager : MonoBehaviour
 
     void Start()
     {
-    //     UpdateUI();
-    //     // Setup provider (Sementara local)
-    //     _dataHandler = new LocalSaveProvider();
-    // }
         UpdateUI();
-        _dataHandler = new SupabaseProvider(); // Ganti ke Supabase
+        if (AuthManager.instance != null)
+        {
+            if (AuthManager.instance.isOnlineMode)
+                _dataHandler = new SupabaseProvider();
+            else
+                _dataHandler = new LocalSaveProvider();
+        }
+        else
+        {
+            _dataHandler = new LocalSaveProvider(); // Default to local
+        }
     }
 
     public async void OnMissionComplete(int apiPadam, float waktu)
@@ -32,7 +38,16 @@ public class EconomyManager : MonoBehaviour
         AddMoney(bonus);
 
         // Simpan data ke "Backend" (Local/Cloud)
-        await _dataHandler.SaveMissionResult("Pemain1", apiPadam, waktu);
+        string pName = AuthManager.instance != null ? AuthManager.instance.playerName : "Pemain1";
+        if (_dataHandler != null)
+        {
+            await _dataHandler.SaveMissionResult(pName, apiPadam, waktu);
+        }
+        else if (GameDataManager.instance != null)
+        {
+            GameDataManager.instance.SaveGameResult(apiPadam, waktu);
+        }
+        
         Debug.Log($"Misi Selesai! Dapat bonus: ${bonus}");
     }
 

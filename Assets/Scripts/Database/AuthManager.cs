@@ -20,13 +20,13 @@ public class AuthManager : MonoBehaviour
     }
 }
 
-    public async Task LoginOnline(string username, string password)
+    public Task LoginOnline(string username, string password)
     {
         // TODO: Implementasi login ke Supabase
         playerName = username;
         isOnlineMode = true;
-        await Task.Delay(500); // Simulasi
         Debug.Log($"<color=cyan>Login Online sebagai: {username}</color>");
+        return Task.CompletedTask;
     }
 
     public void SelectOfflineMode(string username)

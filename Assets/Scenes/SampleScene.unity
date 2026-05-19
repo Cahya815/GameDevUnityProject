@@ -777,11 +777,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 117086865}
   m_CullTransparentMesh: 1
---- !u!1 &131072715 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2925475062389121904, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 2087933849}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &142701075
 GameObject:
   m_ObjectHideFlags: 0
@@ -2223,26 +2218,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: isActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: meshPuing
-      value: 
-      objectReference: {fileID: 1375695639}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: fireEffect
-      value: 
-      objectReference: {fileID: 1066242521}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: meshNormal
-      value: 
-      objectReference: {fileID: 1785146554}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3198,11 +3173,6 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
---- !u!1 &1066242521 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2925475062389121904, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 821913175}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1096422365
 GameObject:
   m_ObjectHideFlags: 0
@@ -3688,16 +3658,6 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
---- !u!1 &1375695639 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1061175277844052299, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 821913175}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1394098279 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 438613369820793279, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 2087933849}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1480624355
 GameObject:
   m_ObjectHideFlags: 0
@@ -4228,11 +4188,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1621234670}
   m_CullTransparentMesh: 1
---- !u!1 &1663492433 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1061175277844052299, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 2087933849}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1683861323
 GameObject:
   m_ObjectHideFlags: 0
@@ -4367,11 +4322,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1683861323}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1785146554 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 438613369820793279, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-  m_PrefabInstance: {fileID: 821913175}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1930449647
 GameObject:
   m_ObjectHideFlags: 0
@@ -4694,30 +4644,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: isActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: meshPuing
-      value: 
-      objectReference: {fileID: 1663492433}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: fireEffect
-      value: 
-      objectReference: {fileID: 131072715}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: fireHealth
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 5775371161646070063, guid: f06b4701bdea1664f8cd1d4edf43e710, type: 3}
-      propertyPath: meshNormal
-      value: 
-      objectReference: {fileID: 1394098279}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
