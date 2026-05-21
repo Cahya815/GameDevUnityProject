@@ -14,7 +14,6 @@ public class DisasterUnit : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
-    // Nama fungsi disamakan menjadi SetTarget!
     public void SetTarget(Vector3 position)
     {
         RaycastHit hit;
@@ -26,7 +25,7 @@ public class DisasterUnit : MonoBehaviour
 
     void Update()
     {
-        // NO AUTOMATIC RADAR. Hanya memproses pembersihan jika target sengaja diklik player
+        //tidak otomatis
         if (targetRubble != null)
         {
             float distance = Vector3.Distance(transform.position, targetRubble.transform.position);
