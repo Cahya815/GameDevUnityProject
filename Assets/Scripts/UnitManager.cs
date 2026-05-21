@@ -62,7 +62,7 @@ public void DeselectAll() {
     void MoveSelectedUnit() {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
     if (Physics.Raycast(ray, out RaycastHit hit)) {
-        // Beri tahu unit untuk bergerak ke titik klik
+        // Beri tahu unit untuk bergerak ke titik klikhah
         selectedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(hit.point);
         
         // Cek apakah yang diklik adalah rumah
