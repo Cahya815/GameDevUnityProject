@@ -66,7 +66,7 @@ public class UnitIdentity : MonoBehaviour
         }
 
         if (targetObject.currentStatus == HouseStatus.Aman) {
-            targetObject = null; // Selesai kerja, target dilepas -> otomatis balik rumah
+            targetObject = null; //balik HQ
         }
     }
 
