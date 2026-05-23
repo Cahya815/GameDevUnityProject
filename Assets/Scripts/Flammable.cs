@@ -3,7 +3,7 @@ using UnityEngine;
 public class Flammable : MonoBehaviour
 {
     [Header("Timer Settings")]
-    public float burnOutTimer = 30f; // Waktu total sampai jadi puing
+    public float burnOutTimer = 30f; 
     private float currentBurnTimer;
 
     [Header("Status")]
@@ -22,7 +22,7 @@ public class Flammable : MonoBehaviour
     }
 
     void Update() {
-        // Jika tutorial aktif, script ini akan diam total dan tidak menghitung timer
+        
         if (TutorialManager.isTutorialActive) {
             isBurning = false;
             return;
