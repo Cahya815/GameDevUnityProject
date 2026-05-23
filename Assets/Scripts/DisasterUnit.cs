@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 public class DisasterUnit : MonoBehaviour
 {
-    public float cleanSpeed = 20f;
+    public float cleanSpeed = 21f;
     public float stoppingDistance = 3f;
     
     private Flammable targetRubble;
