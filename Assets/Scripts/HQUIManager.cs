@@ -29,13 +29,33 @@ public class HQUIManager : MonoBehaviour
 
     public void UpdateUI()
     {
-        infoText.text = $"{currentHQ.buildingName}\nLevel: {currentHQ.level}\nHP: {currentHQ.health}";
+        string disasterStatus = "";
+        UnitManager um = Object.FindFirstObjectByType<UnitManager>();
+        if (um != null)
+        {
+            disasterStatus = um.isDisasterUnitUnlocked 
+                ? "\n<color=green>Disaster Unit: Unlocked</color>" 
+                : $"\n<color=yellow>Disaster Unit: Locked (Cost: ${um.disasterUnlockCost})</color>";
+        }
+        infoText.text = $"{currentHQ.buildingName}\nLevel: {currentHQ.level}\nHP: {currentHQ.health}{disasterStatus}";
     }
 
     public void OnUpgradeClicked()
     {
         currentHQ.UpgradeBuilding();
         UpdateUI(); // Refresh angka di layar
+    }
+
+    public void OnUnlockDisasterClicked()
+    {
+        UnitManager um = Object.FindFirstObjectByType<UnitManager>();
+        if (um != null)
+        {
+            if (um.TryUnlockDisasterUnit())
+            {
+                UpdateUI();
+            }
+        }
     }
 
     public void CloseMenu() => menuPanel.SetActive(false);

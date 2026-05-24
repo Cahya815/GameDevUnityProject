@@ -6,15 +6,30 @@ public class UnitManager : MonoBehaviour
     public List<UnitIdentity> allUnits = new List<UnitIdentity>();
     public UnitIdentity selectedUnit;
     
+    [Header("Disaster Unit Unlock Settings")]
+    public float disasterUnlockCost = 510f;
+    public bool isDisasterUnitUnlocked = false;
+
+    void Start()
+    {
+        // Kunci unit Disaster Control saat awal game
+        UpdateDisasterUnitState();
+    }
+
     void Update() {
     // Tombol angka 1-3 buat pilih unit
     if (Input.GetKeyDown(KeyCode.Alpha1)) SelectUnit(0);
     if (Input.GetKeyDown(KeyCode.Alpha2)) SelectUnit(1);
     if (Input.GetKeyDown(KeyCode.Alpha3)) SelectUnit(2);
 
-    // TOMBOL NETRAL (Misal: Esc atau Alpha0)
-    if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Alpha0)) {
+    // ESCAPE untuk melepas pilihan kursor (unit tetap bekerja otomatis)
+    if (Input.GetKeyDown(KeyCode.Escape)) {
         DeselectAll();
+    }
+
+    // Tombol 0 untuk memanggil semua unit pulang ke HQ (Cancel tugas)
+    if (Input.GetKeyDown(KeyCode.Alpha0)) {
+        RecallAllUnits();
     }
     
     // Klik kanan gerakin unit
@@ -24,28 +39,53 @@ public class UnitManager : MonoBehaviour
 }
 
 public void DeselectAll() {
-    // Kembalikan semua unit ke mode otomatis/pulang
+    // Lepas kontrol manual dari unit yang sedang dipilih agar mereka beralih ke mode otomatis
+    if (selectedUnit != null) {
+        selectedUnit.isManualControlled = false;
+    }
+    
+    selectedUnit = null; // Kosongkan pilihan
+    Debug.Log("<color=cyan>Pilihan dilepas. Unit tetap melanjutkan pekerjaannya!</color>");
+}
+
+public void RecallAllUnits() {
+    // Paksa semua unit membatalkan tugas mereka dan kembali ke HQ
     foreach (var unit in allUnits) {
         if (unit != null) {
             unit.isManualControlled = false;
-            unit.targetObject = null; // Biar dia balik ke posisi awal
+            unit.targetObject = null; // Hapus target agar kembali ke HQ
+            unit.ReturnToHome();
         }
     }
     
     selectedUnit = null; // Kosongkan pilihan
-    Debug.Log("<color=cyan>Semua unit dilepas. Kursor bebas!</color>");
+    Debug.Log("<color=yellow>Semua unit dipanggil pulang ke HQ!</color>");
 }
+
    void SelectUnit(int index) {
     if (index >= allUnits.Count) return;
 
     // Unit yang akan kita pilih
     UnitIdentity unitToSelect = allUnits[index];
 
-    // Reset SEMUA unit lain agar pulang
+    if (unitToSelect == null) return;
+
+    // Jika unit yang dipilih adalah Disaster Control dan masih terkunci
+    if (unitToSelect.jenisUnit == UnitType.DisasterControl && !isDisasterUnitUnlocked)
+    {
+        Debug.LogWarning($"<color=orange>Disaster Unit masih terkunci! Mencoba membuka dengan biaya ${disasterUnlockCost}...</color>");
+        if (TryUnlockDisasterUnit())
+        {
+            // Jika berhasil dibuka, pilih unit tersebut
+            SelectUnit(index);
+        }
+        return;
+    }
+
+    // Lepas status kontrol manual dari unit lain (JANGAN hapus targetObject mereka agar tetap bekerja otomatis!)
     foreach (var unit in allUnits) {
         if (unit != null && unit != unitToSelect) {
             unit.isManualControlled = false; 
-            unit.targetObject = null; // Unit lain harus lepas target agar pulang
         }
     }
 
@@ -58,6 +98,39 @@ public void DeselectAll() {
 
     Debug.Log("Mengendalikan: " + selectedUnit.gameObject.name);
 }
+
+    public bool TryUnlockDisasterUnit()
+    {
+        if (isDisasterUnitUnlocked) return true;
+
+        if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(disasterUnlockCost))
+        {
+            isDisasterUnitUnlocked = true;
+            UpdateDisasterUnitState();
+            Debug.Log($"<color=green>Disaster Unit Berhasil Dibuka seharga ${disasterUnlockCost}!</color>");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"<color=yellow>Uang tidak cukup untuk membuka Disaster Unit! (Butuh: ${disasterUnlockCost})</color>");
+            return false;
+        }
+    }
+
+    public void UpdateDisasterUnitState()
+    {
+        foreach (var unit in allUnits)
+        {
+            if (unit != null && unit.jenisUnit == UnitType.DisasterControl)
+            {
+                unit.gameObject.SetActive(isDisasterUnitUnlocked);
+                if (isDisasterUnitUnlocked && unit.agent != null)
+                {
+                    unit.agent.isStopped = false;
+                }
+            }
+        }
+    }
 
     void MoveSelectedUnit() {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
