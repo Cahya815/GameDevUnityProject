@@ -5,8 +5,6 @@ public class EconomyManager : MonoBehaviour
 {
     public static EconomyManager instance;
 
-    private IGameDataHandler _dataHandler;
-
     public float currentMoney = 500f;
     public TextMeshProUGUI moneyDisplay;
 
@@ -18,34 +16,22 @@ public class EconomyManager : MonoBehaviour
     void Start()
     {
         UpdateUI();
-        if (AuthManager.instance != null)
-        {
-            if (AuthManager.instance.isOnlineMode)
-                _dataHandler = new SupabaseProvider();
-            else
-                _dataHandler = new LocalSaveProvider();
-        }
-        else
-        {
-            _dataHandler = new LocalSaveProvider(); // Default to local
-        }
     }
 
-    public async void OnMissionComplete(int apiPadam, float waktu)
+    public void OnMissionComplete(int apiPadam, float waktu)
     {
         // Hitung bonus uang berdasarkan api yang padam
         float bonus = apiPadam * 10f; 
         AddMoney(bonus);
 
-        // Simpan data ke "Backend" (Local/Cloud)
-        string pName = AuthManager.instance != null ? AuthManager.instance.playerName : "Pemain1";
-        if (_dataHandler != null)
-        {
-            await _dataHandler.SaveMissionResult(pName, apiPadam, waktu);
-        }
-        else if (GameDataManager.instance != null)
+        // Simpan data ke "Backend" (Local/Cloud) melalui GameDataManager
+        if (GameDataManager.instance != null)
         {
             GameDataManager.instance.SaveGameResult(apiPadam, waktu);
+        }
+        else
+        {
+            Debug.LogError("GameDataManager tidak ditemukan! Gagal menyimpan data.");
         }
         
         Debug.Log($"Misi Selesai! Dapat bonus: ${bonus}");

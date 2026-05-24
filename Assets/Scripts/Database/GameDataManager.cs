@@ -35,7 +35,8 @@ public class GameDataManager : MonoBehaviour
     {
         if (AuthManager.instance == null)
         {
-            Debug.LogError("AuthManager tidak ditemukan!");
+            Debug.LogWarning("AuthManager tidak ditemukan! Default ke Local Save.");
+            _dataHandler = new LocalSaveProvider();
             return;
         }
 
@@ -55,11 +56,11 @@ public class GameDataManager : MonoBehaviour
     {
         if (_dataHandler == null)
         {
-            Debug.LogError("Data handler belum diinisialisasi!");
-            return;
+            Debug.LogWarning("Data handler belum diinisialisasi! Menginisialisasi default...");
+            InitializeDataHandler();
         }
 
-        string playerName = AuthManager.instance.playerName;
+        string playerName = AuthManager.instance != null ? AuthManager.instance.playerName : "Pemain1";
         await _dataHandler.SaveMissionResult(playerName, firesExtinguished, duration);
     }
 }
