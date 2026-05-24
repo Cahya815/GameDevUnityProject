@@ -46,8 +46,7 @@ public class LevelDirector : MonoBehaviour
 
     void TriggerFire()
     {
-        // Perbaikan typo: allHouses (pakai s)
-        // Perbaikan logika: Gunakan bantuan (Flammable h) agar C# tidak bingung tipe datanya
+        
         var safeHouses = System.Array.FindAll(allHouses, (Flammable h) => h.currentStatus == HouseStatus.Aman);
         
         if (safeHouses.Length > 0)
