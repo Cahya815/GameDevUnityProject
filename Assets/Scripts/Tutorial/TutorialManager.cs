@@ -48,14 +48,14 @@ public class TutorialManager : MonoBehaviour
         switch (step)
         {
             case 0:
-                tutorialText.text = "Selamat datang, Komandan! Ini adalah markas HQ lo.";
+                tutorialText.text = "Selamat datang, Komandan!\nIni adalah markas HQ lo.";
                 break;
             case 1:
-                tutorialText.text = "Klik HQ untuk melihat status dan menu upgrade.";
+                tutorialText.text = "Klik HQ untuk melihat\nstatus dan menu upgrade.";
                 nextButton.gameObject.SetActive(true);
                 break;
             case 2:
-                tutorialText.text = "Bagus! Sekarang coba tekan tombol UPGRADE.";
+                tutorialText.text = "Bagus! Sekarang coba tekan\ntombol UPGRADE.";
                 nextButton.gameObject.SetActive(true);
                 break;
             case 3:
