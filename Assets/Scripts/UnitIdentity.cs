@@ -62,10 +62,14 @@ public class UnitIdentity : MonoBehaviour
             targetObject.Extinguish(power);
         } 
         else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing) {
-            targetObject.CleanRubble(power);
+            if (targetObject.isTree) {
+                targetObject = null; // Pohon tidak perlu dibersihkan, lepas target
+            } else {
+                targetObject.CleanRubble(power);
+            }
         }
 
-        if (targetObject.currentStatus == HouseStatus.Aman) {
+        if (targetObject != null && targetObject.currentStatus == HouseStatus.Aman) {
             targetObject = null; //balik HQ
         }
     }

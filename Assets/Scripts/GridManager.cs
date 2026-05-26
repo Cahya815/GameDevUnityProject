@@ -60,14 +60,27 @@ public class GridManager : MonoBehaviour
                         agent.SetDestination(hit.point);
                     }
 
+                    // Cek apakah yang diklik adalah Flammable (rumah/pohon)
+                    Flammable targetFlammable = hit.collider.GetComponent<Flammable>();
+                    if (targetFlammable == null) targetFlammable = hit.collider.GetComponentInParent<Flammable>();
+
+                    // Sinkronisasi target utama unit
+                    um.selectedUnit.targetObject = targetFlammable;
+
                     // 2. Sinkronisasi target ke komponen spesifik mobil (Pakai SetTarget yang konsisten!)
                     if (um.selectedUnit.TryGetComponent(out FireTruck ft)) 
                     {
-                        ft.SetTarget(hit.point);
+                        if (targetFlammable != null)
+                            ft.SetTarget(targetFlammable);
+                        else
+                            ft.SetTarget(hit.point);
                     }
                     if (um.selectedUnit.TryGetComponent(out DisasterUnit du)) 
                     {
-                        du.SetTarget(hit.point);
+                        if (targetFlammable != null)
+                            du.SetTarget(targetFlammable);
+                        else
+                            du.SetTarget(hit.point);
                     }
 
                     Debug.Log("Unit " + um.selectedUnit.name + " diperintahkan ke: " + hit.point);

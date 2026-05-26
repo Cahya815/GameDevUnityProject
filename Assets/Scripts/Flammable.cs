@@ -2,9 +2,22 @@ using UnityEngine;
 
 public class Flammable : MonoBehaviour
 {
+    [Header("Type Settings")]
+    public bool isTree = false;
+
     [Header("Timer Settings")]
     public float burnOutTimer = 30f; 
     private float currentBurnTimer;
+
+    [Header("Tree Regeneration Settings")]
+    public float regenerationDuration = 20f; 
+    private float currentRegenTimer;
+
+    [Header("Fire Spread Settings")]
+    public bool canSpreadFire = true;
+    public float spreadRadius = 6f;
+    public float spreadInterval = 6f; 
+    private float spreadTimer;
 
     [Header("Status")]
     public HouseStatus currentStatus = HouseStatus.Aman;
@@ -14,15 +27,22 @@ public class Flammable : MonoBehaviour
     [Header("Visuals")]
     public GameObject fireEffect;
     public GameObject meshNormal;
-    public GameObject meshPuing;
+    public GameObject meshPuing; // Untuk Pohon, ini merepresentasikan "Pohon Gosong"
 
     void Start() {
-        currentBurnTimer = burnOutTimer; // Isi timer saat mulai
+        // Konfigurasi dinamis antara Rumah vs Pohon demi balancing game
+        if (isTree) {
+            burnOutTimer = 15f;           // Pohon lebih rentan dan cepat gosong
+            spreadRadius = 8f;            // Merembet lebih jauh di area hutan
+            spreadInterval = 4f;          // Merembet lebih cepat
+            regenerationDuration = 20f;   // Waktu tumbuh kembali secara otomatis
+        }
+
+        currentBurnTimer = burnOutTimer; 
         UpdateVisuals();
     }
 
     void Update() {
-        
         if (TutorialManager.isTutorialActive) {
             isBurning = false;
             return;
@@ -30,6 +50,7 @@ public class Flammable : MonoBehaviour
 
         isBurning = (currentStatus == HouseStatus.Terbakar);
 
+        // 1. Logika Pembakaran
         if (currentStatus == HouseStatus.Terbakar) {
             currentBurnTimer -= Time.deltaTime; 
 
@@ -37,70 +58,103 @@ public class Flammable : MonoBehaviour
                 currentBurnTimer = 0; 
                 SetToPuing();
             }
+
+            // 2. Logika Merembet (Spread Fire)
+            if (canSpreadFire) {
+                spreadTimer += Time.deltaTime;
+                if (spreadTimer >= spreadInterval) {
+                    spreadTimer = 0f;
+                    SpreadFireToNeighbors();
+                }
+            }
+        } else {
+            spreadTimer = 0f;
+        }
+
+        // 3. Logika Regenerasi Otomatis (Hanya untuk Pohon)
+        if (isTree && currentStatus == HouseStatus.Puing) {
+            currentRegenTimer -= Time.deltaTime;
+            if (currentRegenTimer <= 0) {
+                SetToAman();
+                Debug.Log($"<color=green>{gameObject.name} telah tumbuh subur kembali (Regenerasi Otomatis)!</color>");
+            }
         }
     }
 
-    // Fungsi yang dicari LeverDirector
+    // Fungsi merembetkan api ke objek Flammable lain yang aman di sekitarnya
+    void SpreadFireToNeighbors() {
+        if (TutorialManager.isTutorialActive) return;
+
+        Collider[] colliders = Physics.OverlapSphere(transform.position, spreadRadius);
+        foreach (var col in colliders) {
+            Flammable neighbor = col.GetComponentInParent<Flammable>();
+            if (neighbor != null && neighbor != this && neighbor.currentStatus == HouseStatus.Aman) {
+                neighbor.SetToTerbakar();
+                Debug.Log($"<color=red>Api merembet dari {gameObject.name} ke {neighbor.gameObject.name}!</color>");
+            }
+        }
+    }
+
     public void SetToTerbakar() {
-        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+        if (TutorialManager.isTutorialActive) return; 
 
         currentStatus = HouseStatus.Terbakar;
-        fireHealth = 10f;
-        currentBurnTimer = burnOutTimer; // <--- WAJIB: Isi ulang bensin timernya di sini!
+        fireHealth = isTree ? 30f : 100f; // Pohon lebih mudah padam (HP api kecil) dibanding Rumah
+        currentBurnTimer = burnOutTimer; 
         UpdateVisuals();
     }
 
     public void Extinguish(float p) {
-        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+        if (TutorialManager.isTutorialActive) return; 
 
         if (currentStatus == HouseStatus.Terbakar) {
             fireHealth -= p * Time.deltaTime;
             if (fireHealth <= 0) {
                 SetToAman();
-                // COLOKAN: Beritahu backend/economy satu api berhasil padam
+                
+                // Bonus hadiah saat berhasil memadamkan api
                 if (EconomyManager.instance != null) {
-                    EconomyManager.instance.OnMissionComplete(1, 0); // 1 api padam
+                    float moneyBonus = isTree ? 15f : 50f; // Memadamkan rumah memberi reward lebih besar
+                    EconomyManager.instance.AddMoney(moneyBonus);
+                    EconomyManager.instance.OnMissionComplete(1, 0); 
                 }
             }
         }
     }
 
     public void CleanRubble(float s) {
-        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+        if (TutorialManager.isTutorialActive) return; 
+
+        if (isTree) return; // Pohon tidak perlu dibersihkan secara manual!
 
         if (currentStatus == HouseStatus.Puing) {
             SetToAman();
-            Debug.Log("<color=orange>Puing dibersihkan!</color>");
+            Debug.Log("<color=orange>Puing rumah berhasil dibersihkan!</color>");
             
-            // COLOKAN: Berikan uang/skor karena sudah membersihkan puing
             if (EconomyManager.instance != null) {
-                EconomyManager.instance.AddMoney(50f); // Contoh: dapat $50
+                EconomyManager.instance.AddMoney(50f); 
             }
         }
     }
 
     public void SetToAman() {
-        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+        if (TutorialManager.isTutorialActive) return; 
 
         currentStatus = HouseStatus.Aman;
         fireHealth = 0;
         UpdateVisuals();
     }
     
-
     public void UpdateVisuals() {
-        // Matikan SEMUA dulu biar bersih
         if (fireEffect != null) fireEffect.SetActive(false);
         if (meshNormal != null) meshNormal.SetActive(false);
         if (meshPuing != null) meshPuing.SetActive(false);
 
-        // Jika tutorial aktif, paksa tampilkan rumah normal saja dan sembunyikan api
         if (TutorialManager.isTutorialActive) {
             if (meshNormal != null) meshNormal.SetActive(true);
-            return; // Berhenti di sini
+            return; 
         }
 
-        // Nyalakan yang HANYA dibutuhkan sesuai status
         switch (currentStatus) {
             case HouseStatus.Aman:
                 if (meshNormal != null) meshNormal.SetActive(true);
@@ -112,17 +166,28 @@ public class Flammable : MonoBehaviour
                 break;
 
             case HouseStatus.Puing:
-                if (meshPuing != null) meshPuing.SetActive(true);
+                if (meshPuing != null) meshPuing.SetActive(true); // Pohon Gosong atau Puing Rumah
                 break;
         }
     }
 
     public void SetToPuing() {
-        if (TutorialManager.isTutorialActive) return; // ABAIKAN TOTAL selama tutorial
+        if (TutorialManager.isTutorialActive) return; 
 
         currentStatus = HouseStatus.Puing;
         fireHealth = 0;
         UpdateVisuals();
-        Debug.Log("<color=red>Rumah Hancur Menjadi Puing!</color>");
+
+        if (isTree) {
+            currentRegenTimer = regenerationDuration;
+            Debug.Log($"<color=brown>{gameObject.name} Hangus Menjadi Pohon Gosong!</color>");
+        } else {
+            Debug.Log($"<color=red>Rumah {gameObject.name} Hancur Menjadi Puing! Kota merugi.</color>");
+            
+            // Kerugian ekonomi kota karena rumah hancur
+            if (EconomyManager.instance != null) {
+                EconomyManager.instance.SpendMoney(150f); // Kota rugi $150
+            }
+        }
     }
 }

@@ -135,12 +135,27 @@ public void RecallAllUnits() {
     void MoveSelectedUnit() {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
     if (Physics.Raycast(ray, out RaycastHit hit)) {
-        // Beri tahu unit untuk bergerak ke titik klikhah
+        // Beri tahu unit untuk bergerak ke titik klik
         selectedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(hit.point);
         
-        // Cek apakah yang diklik adalah rumah
+        // Cek apakah yang diklik adalah rumah/pohon
         Flammable f = hit.collider.GetComponent<Flammable>();
-        selectedUnit.targetObject = f; // Jika klik tanah, ini jadi null (bagus!)
+        if (f == null) f = hit.collider.GetComponentInParent<Flammable>();
+        
+        if (f != null && f.isTree && selectedUnit.jenisUnit == UnitType.DisasterControl) {
+            Debug.Log("<color=yellow>Unit pembersih tidak bisa membersihkan pohon gosong!</color>");
+            selectedUnit.targetObject = null;
+        } else {
+            selectedUnit.targetObject = f;
+        }
+
+        // Sinkronisasi target ke komponen spesifik mobil
+        if (selectedUnit.TryGetComponent(out FireTruck ft)) {
+            ft.SetTarget(selectedUnit.targetObject);
+        }
+        if (selectedUnit.TryGetComponent(out DisasterUnit du)) {
+            du.SetTarget(selectedUnit.targetObject);
+        }
     }
 }
 }

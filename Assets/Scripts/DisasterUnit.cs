@@ -19,7 +19,29 @@ public class DisasterUnit : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(position + Vector3.up * 5, Vector3.down, out hit, 10f))
         {
-            targetRubble = hit.collider.GetComponentInParent<Flammable>();
+            var flammable = hit.collider.GetComponentInParent<Flammable>();
+            SetTarget(flammable);
+        }
+        else
+        {
+            targetRubble = null;
+        }
+    }
+
+    public void SetTarget(Flammable target)
+    {
+        if (target != null && !target.isTree)
+        {
+            targetRubble = target;
+        }
+        else if (target != null && target.isTree)
+        {
+            Debug.Log("<color=yellow>Pohon gosong tidak perlu dibersihkan, ia akan tumbuh kembali secara otomatis!</color>");
+            targetRubble = null;
+        }
+        else
+        {
+            targetRubble = null;
         }
     }
 
@@ -28,10 +50,17 @@ public class DisasterUnit : MonoBehaviour
         //tidak otomatis
         if (targetRubble != null)
         {
-            float distance = Vector3.Distance(transform.position, targetRubble.transform.position);
-            if (distance <= stoppingDistance)
+            if (targetRubble.currentStatus == HouseStatus.Puing)
             {
-                CleanProcess();
+                float distance = Vector3.Distance(transform.position, targetRubble.transform.position);
+                if (distance <= stoppingDistance)
+                {
+                    CleanProcess();
+                }
+            }
+            else if (targetRubble.currentStatus == HouseStatus.Aman)
+            {
+                targetRubble = null;
             }
         }
     }

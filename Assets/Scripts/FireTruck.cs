@@ -8,6 +8,7 @@ public class FireTruck : MonoBehaviour
     
     private Flammable targetFire;
     private NavMeshAgent agent;
+    private bool hasLoggedSpray = false;
 
     void Awake()
     {
@@ -20,26 +21,61 @@ public class FireTruck : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(position + Vector3.up * 10, Vector3.down, out hit, 20f))
         {
-            targetFire = hit.collider.GetComponentInParent<Flammable>();
+            var newTarget = hit.collider.GetComponentInParent<Flammable>();
+            if (targetFire != newTarget)
+            {
+                targetFire = newTarget;
+                hasLoggedSpray = false;
+            }
+        }
+        else
+        {
+            targetFire = null;
+            hasLoggedSpray = false;
+        }
+    }
+
+    public void SetTarget(Flammable target)
+    {
+        if (targetFire != target)
+        {
+            targetFire = target;
+            hasLoggedSpray = false;
         }
     }
 
     void Update()
     {
         // Hanya logika menyemprot jika sudah dekat dengan target rumah terbakar
-        if (targetFire != null && targetFire.currentStatus == HouseStatus.Terbakar)
+        if (targetFire != null)
         {
-            float distance = Vector3.Distance(transform.position, targetFire.transform.position);
-
-            if (distance <= stopDistance)
+            if (targetFire.currentStatus == HouseStatus.Terbakar)
             {
-                agent.isStopped = true; 
-                targetFire.Extinguish(extinguishPower);
-                Debug.Log("Menyemprot " + targetFire.gameObject.name);
+                float distance = Vector3.Distance(transform.position, targetFire.transform.position);
+
+                if (distance <= stopDistance)
+                {
+                    agent.isStopped = true; 
+                    targetFire.Extinguish(extinguishPower);
+                    if (!hasLoggedSpray)
+                    {
+                        Debug.Log("Mulai menyemprot " + targetFire.gameObject.name);
+                        hasLoggedSpray = true;
+                    }
+                }
+                else
+                {
+                    agent.isStopped = false;
+                }
+            }
+            else if (targetFire.currentStatus == HouseStatus.Aman)
+            {
+                targetFire = null;
+                if (agent != null) agent.isStopped = false;
             }
             else
             {
-                agent.isStopped = false;
+                if (agent != null) agent.isStopped = false;
             }
         }
         else
