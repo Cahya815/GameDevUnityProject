@@ -149,6 +149,9 @@ public void RecallAllUnits() {
             selectedUnit.targetObject = f;
         }
 
+        // Setel ke kontrol manual karena pemain baru saja memberi perintah manual baru
+        selectedUnit.isManualControlled = true;
+
         // Sinkronisasi target ke komponen spesifik mobil
         if (selectedUnit.TryGetComponent(out FireTruck ft)) {
             ft.SetTarget(selectedUnit.targetObject);

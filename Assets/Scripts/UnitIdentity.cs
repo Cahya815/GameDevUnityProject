@@ -22,6 +22,36 @@ public class UnitIdentity : MonoBehaviour
     }
 
     void Update() {
+        // Cek apakah target sudah selesai dikerjakan atau sudah tidak valid
+        if (targetObject != null) {
+            bool isFinished = false;
+
+            if (targetObject.currentStatus == HouseStatus.Aman) {
+                isFinished = true;
+            }
+            else if (jenisUnit == UnitType.Firefighter && targetObject.currentStatus == HouseStatus.Puing) {
+                // Jika rumah/pohon terlanjur hangus terbakar menjadi puing, tidak ada api lagi untuk disemprot
+                isFinished = true;
+            }
+            else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing && targetObject.isTree) {
+                // Pohon gosong tidak perlu dibersihkan secara manual (ia regenerasi otomatis)
+                isFinished = true;
+            }
+
+            if (isFinished) {
+                targetObject = null;
+                isManualControlled = false;
+                
+                // Sinkronisasi target ke komponen spesifik mobil
+                if (TryGetComponent(out FireTruck ft)) {
+                    ft.SetTarget(null);
+                }
+                if (TryGetComponent(out DisasterUnit du)) {
+                    du.SetTarget(null);
+                }
+            }
+        }
+
         // 1. LOGIKA BALIK KE RUMAH (Hanya jika tidak dikontrol & tidak punya kerjaan)
         if (!isManualControlled && targetObject == null) {
             float distToHome = Vector3.Distance(transform.position, spawnPosition);
@@ -64,6 +94,10 @@ public class UnitIdentity : MonoBehaviour
         else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing) {
             if (targetObject.isTree) {
                 targetObject = null; // Pohon tidak perlu dibersihkan, lepas target
+                isManualControlled = false;
+                if (TryGetComponent(out DisasterUnit du)) {
+                    du.SetTarget(null);
+                }
             } else {
                 targetObject.CleanRubble(power);
             }
@@ -71,6 +105,14 @@ public class UnitIdentity : MonoBehaviour
 
         if (targetObject != null && targetObject.currentStatus == HouseStatus.Aman) {
             targetObject = null; //balik HQ
+            isManualControlled = false;
+            
+            if (TryGetComponent(out FireTruck ft)) {
+                ft.SetTarget(null);
+            }
+            if (TryGetComponent(out DisasterUnit du)) {
+                du.SetTarget(null);
+            }
         }
     }
 

@@ -66,6 +66,9 @@ public class GridManager : MonoBehaviour
 
                     // Sinkronisasi target utama unit
                     um.selectedUnit.targetObject = targetFlammable;
+                    
+                    // Setel ke kontrol manual karena pemain baru saja memberi perintah manual baru
+                    um.selectedUnit.isManualControlled = true;
 
                     // 2. Sinkronisasi target ke komponen spesifik mobil (Pakai SetTarget yang konsisten!)
                     if (um.selectedUnit.TryGetComponent(out FireTruck ft)) 

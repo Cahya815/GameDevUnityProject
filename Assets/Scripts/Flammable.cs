@@ -15,8 +15,8 @@ public class Flammable : MonoBehaviour
 
     [Header("Fire Spread Settings")]
     public bool canSpreadFire = true;
-    public float spreadRadius = 6f;
-    public float spreadInterval = 6f; 
+    public float spreadRadius = 60f;
+    public float spreadInterval = 30f; 
     private float spreadTimer;
 
     [Header("Status")]
@@ -33,8 +33,8 @@ public class Flammable : MonoBehaviour
         // Konfigurasi dinamis antara Rumah vs Pohon demi balancing game
         if (isTree) {
             burnOutTimer = 15f;           // Pohon lebih rentan dan cepat gosong
-            spreadRadius = 8f;            // Merembet lebih jauh di area hutan
-            spreadInterval = 4f;          // Merembet lebih cepat
+            spreadRadius = 16f;            // Merembet lebih jauh di area hutan
+            spreadInterval =8f;          // Merembet lebih cepat
             regenerationDuration = 20f;   // Waktu tumbuh kembali secara otomatis
         }
 
