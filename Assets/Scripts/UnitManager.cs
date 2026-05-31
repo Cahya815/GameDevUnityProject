@@ -3,12 +3,26 @@ using System.Collections.Generic;
 
 public class UnitManager : MonoBehaviour 
 {
+    public static UnitManager instance;
+
     public List<UnitIdentity> allUnits = new List<UnitIdentity>();
     public UnitIdentity selectedUnit;
     
     [Header("Disaster Unit Unlock Settings")]
     public float disasterUnlockCost = 510f;
     public bool isDisasterUnitUnlocked = false;
+
+    void Awake()
+    {
+        if (instance == null) instance = this;
+
+        // Pastikan UnitStatsUIManager terpasang secara otomatis biar praktis!
+        if (Object.FindFirstObjectByType<UnitStatsUIManager>() == null)
+        {
+            gameObject.AddComponent<UnitStatsUIManager>();
+            Debug.Log("<color=green>UnitStatsUIManager ditambahkan ke UnitManager secara otomatis!</color>");
+        }
+    }
 
     void Start()
     {
