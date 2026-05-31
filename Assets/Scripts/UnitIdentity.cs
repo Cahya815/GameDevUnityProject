@@ -7,12 +7,23 @@ public class UnitIdentity : MonoBehaviour
     public UnitType jenisUnit;
     public float power = 50f;
 
+    [Header("Crew Training Settings")]
+    public int crewLevel = 1;
+    public bool isTraining = false;
+    public float trainingTimer = 0f;
+    public float trainingDuration = 0f;
+
+    [Header("Engine Condition Settings")]
+    public float engineCondition = 100f; // 0 sampai 100
+    public bool isStalled = false; // mogok
+    public float engineDegradationRate = 0.5f; // berkurang 0.5% per detik saat aktif bekerja/jalan
+
     [Header("State")]
     public Flammable targetObject; 
     public bool isManualControlled = false;
     
     public NavMeshAgent agent; // Sekarang UnitManager bisa ngasih perintah
-    private Vector3 spawnPosition; // Koordinat rumah asli
+    [HideInInspector] public Vector3 spawnPosition; // Koordinat rumah asli (HQ)
     private bool isReturningHome = false;
 
     void Awake() {
@@ -22,6 +33,42 @@ public class UnitIdentity : MonoBehaviour
     }
 
     void Update() {
+        // Cek jika sedang mogok
+        if (isStalled) {
+            if (agent != null) {
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
+            }
+            return;
+        }
+
+        // Cek jika sedang latihan
+        if (isTraining) {
+            if (agent != null) {
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
+            }
+            trainingTimer -= Time.deltaTime;
+            if (trainingTimer <= 0f) {
+                CompleteTraining();
+            }
+            return;
+        }
+
+        // Degradasi kondisi mesin saat bergerak atau memiliki target (sedang bekerja)
+        if ((agent != null && agent.velocity.magnitude > 0.1f) || targetObject != null) {
+            engineCondition -= engineDegradationRate * Time.deltaTime;
+            if (engineCondition <= 0f) {
+                engineCondition = 0f;
+                isStalled = true;
+                targetObject = null;
+                isManualControlled = false;
+                if (TryGetComponent(out FireTruck ft)) ft.SetTarget(null);
+                if (TryGetComponent(out DisasterUnit du)) du.SetTarget(null);
+                Debug.LogError($"<color=red>MOGOK! {gameObject.name} mesinnya mogok karena tidak dirawat. Butuh rehabilitasi mesin!</color>");
+            }
+        }
+
         // Cek apakah target sudah selesai dikerjakan atau sudah tidak valid
         if (targetObject != null) {
             bool isFinished = false;
@@ -74,7 +121,6 @@ public class UnitIdentity : MonoBehaviour
 
             float dist = Vector3.Distance(transform.position, targetObject.transform.position);
             
-            // belum tau cara kerja dia bisa muncul toggle di unity kayaknya penting tapi gua gapaham samasekali njir beda banget sama html
             if (!isManualControlled) {
                 agent.SetDestination(targetObject.transform.position);
             }
@@ -89,6 +135,17 @@ public class UnitIdentity : MonoBehaviour
         if (targetObject == null) return;
 
         if (jenisUnit == UnitType.Firefighter && targetObject.currentStatus == HouseStatus.Terbakar) {
+            // Cek apakah punya komponen FireTruck dan airnya habis
+            if (TryGetComponent(out FireTruck ft)) {
+                if (ft.currentWater <= 0) {
+                    Debug.LogWarning($"{gameObject.name} kehabisan air! Tidak bisa memadamkan.");
+                    // Lepas target agar pulang ke HQ untuk isi ulang otomatis
+                    targetObject = null;
+                    isManualControlled = false;
+                    ft.SetTarget(null);
+                    return;
+                }
+            }
             targetObject.Extinguish(power);
         } 
         else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing) {
@@ -121,6 +178,59 @@ public class UnitIdentity : MonoBehaviour
         if (agent != null) {
             agent.isStopped = false;
             agent.SetDestination(spawnPosition);
+        }
+    }
+
+    public void StartTraining() {
+        if (isTraining || isStalled) return;
+        
+        float cost = crewLevel * 100f; // Biaya naik seiring level
+        float duration = crewLevel * 5f; // Waktu latihan naik
+        
+        if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(cost)) {
+            isTraining = true;
+            trainingDuration = duration;
+            trainingTimer = duration;
+            targetObject = null;
+            isManualControlled = false;
+            if (TryGetComponent(out FireTruck ft)) ft.SetTarget(null);
+            if (TryGetComponent(out DisasterUnit du)) du.SetTarget(null);
+            
+            // Teleport ke HQ untuk latihan
+            transform.position = spawnPosition;
+            if (agent != null) {
+                agent.Warp(spawnPosition);
+                agent.isStopped = true;
+            }
+            
+            Debug.Log($"<color=cyan>{gameObject.name} mulai Latihan Anggota (Level {crewLevel} -> {crewLevel + 1}). Biaya: ${cost}, Durasi: {duration}s</color>");
+        } else {
+            Debug.LogWarning("<color=yellow>Uang tidak cukup untuk Latihan Anggota!</color>");
+        }
+    }
+
+    private void CompleteTraining() {
+        isTraining = false;
+        crewLevel++;
+        power += 15f; // Upgrade kekuatan
+        if (agent != null) {
+            agent.speed += 0.5f; // Upgrade kecepatan jalan
+            agent.isStopped = false;
+        }
+        Debug.Log($"<color=green>Latihan Selesai! Anggota {gameObject.name} naik ke Level {crewLevel}! Power & Speed meningkat.</color>");
+    }
+
+    public void RehabilitateEngine() {
+        float cost = (100f - engineCondition) * 1f; // $1 per 1% damage
+        if (cost < 5f) cost = 5f; // Minimal biaya $5
+        
+        if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(cost)) {
+            engineCondition = 100f;
+            isStalled = false;
+            if (agent != null) agent.isStopped = false;
+            Debug.Log($"<color=green>{gameObject.name} berhasil direhabilitasi seharga ${cost:F0}! Mesin kembali prima.</color>");
+        } else {
+            Debug.LogWarning("<color=yellow>Uang tidak cukup untuk rehabilitasi mesin!</color>");
         }
     }
 }

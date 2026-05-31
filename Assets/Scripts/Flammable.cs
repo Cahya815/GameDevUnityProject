@@ -17,6 +17,9 @@ public class Flammable : MonoBehaviour
     public bool canSpreadFire = true;
     public float spreadRadius = 60f;
     public float spreadInterval = 30f; 
+    [Tooltip("Variasi waktu acak dalam detik (min: interval - variance, max: interval + variance) agar penyebaran lebih dinamis")]
+    public float spreadVariance = 10f;
+    private float currentSpreadInterval;
     private float spreadTimer;
 
     [Header("Status")]
@@ -34,11 +37,15 @@ public class Flammable : MonoBehaviour
         if (isTree) {
             burnOutTimer = 15f;           // Pohon lebih rentan dan cepat gosong
             spreadRadius = 16f;            // Merembet lebih jauh di area hutan
-            spreadInterval =8f;          // Merembet lebih cepat
+            spreadInterval = 20f;          // Diperlambat agar tidak merembet terlalu cepat (sebelumnya 8f)
+            spreadVariance = 6f;           // Rentang acak penyebaran pohon (14s - 26s)
             regenerationDuration = 20f;   // Waktu tumbuh kembali secara otomatis
+        } else {
+            spreadVariance = 10f;          // Rumah: 20s - 40s
         }
 
         currentBurnTimer = burnOutTimer; 
+        currentSpreadInterval = Random.Range(Mathf.Max(1f, spreadInterval - spreadVariance), spreadInterval + spreadVariance);
         UpdateVisuals();
     }
 
@@ -62,9 +69,11 @@ public class Flammable : MonoBehaviour
             // 2. Logika Merembet (Spread Fire)
             if (canSpreadFire) {
                 spreadTimer += Time.deltaTime;
-                if (spreadTimer >= spreadInterval) {
+                if (spreadTimer >= currentSpreadInterval) {
                     spreadTimer = 0f;
                     SpreadFireToNeighbors();
+                    // Acak ulang interval untuk penyebaran berikutnya
+                    currentSpreadInterval = Random.Range(Mathf.Max(1f, spreadInterval - spreadVariance), spreadInterval + spreadVariance);
                 }
             }
         } else {
@@ -101,6 +110,11 @@ public class Flammable : MonoBehaviour
         currentStatus = HouseStatus.Terbakar;
         fireHealth = isTree ? 30f : 100f; // Pohon lebih mudah padam (HP api kecil) dibanding Rumah
         currentBurnTimer = burnOutTimer; 
+        
+        // Tentukan waktu acak untuk penyebaran pertama kali terbakar
+        currentSpreadInterval = Random.Range(Mathf.Max(1f, spreadInterval - spreadVariance), spreadInterval + spreadVariance);
+        spreadTimer = 0f;
+
         UpdateVisuals();
     }
 
