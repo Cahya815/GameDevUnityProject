@@ -12,6 +12,11 @@ public class FireTruck : MonoBehaviour
     public float waterConsumptionRate = 15f; // berkurang 15 unit per detik saat menyemprot
     public float waterRefillRate = 25f;       // terisi 25 unit per detik di dekat HQ/Hidran
 
+    [Header("Crew Settings")]
+    public GameObject crewPrefab;
+    private FirefighterCrew activeCrew;
+    private bool isCrewDeployed = false;
+
     private Flammable targetFire;
     private NavMeshAgent agent;
     private bool hasLoggedSpray = false;
@@ -19,6 +24,26 @@ public class FireTruck : MonoBehaviour
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+    }
+
+    void Start()
+    {
+        if (crewPrefab == null)
+        {
+            // Coba cari di folder Resources jika ada
+            crewPrefab = Resources.Load<GameObject>("FirefighterCrew");
+            
+            if (crewPrefab == null)
+            {
+                Debug.LogError("<color=red><b>[ERROR] Crew Prefab Hilang di Mobil Pemadam!</b></color>\n" +
+                               "Ini terjadi karena Anda memasang prefab crew pada mobil yang ada di <b>Hierarchy (Scene)</b>, sedangkan mobil baru di-spawn dari <b>Prefab asli</b> di folder Project.\n\n" +
+                               "<b>CARA MEMPERBAIKI:</b>\n" +
+                               "1. Klik folder <b>Assets</b> di tab <b>Project</b> (bukan Hierarchy).\n" +
+                               "2. Temukan file prefab <b>FireTruck</b> (mobil damkar) Anda di sana, lalu klik 2x untuk membuka Prefab.\n" +
+                               "3. Pada Inspector prefab <b>FireTruck</b> tersebut, seret prefab <b>FirefighterCrew</b> Anda ke kolom <b>Crew Prefab</b>.\n" +
+                               "4. Jalankan kembali game Anda! Sekarang crew tidak akan missing lagi.");
+            }
+        }
     }
 
     // Nama fungsi diganti jadi SetTarget agar klop dengan GridManager!
@@ -30,12 +55,21 @@ public class FireTruck : MonoBehaviour
             var newTarget = hit.collider.GetComponentInParent<Flammable>();
             if (targetFire != newTarget)
             {
+                // Jika sedang ada crew, suruh crew pulang dulu sebelum ganti target
+                if (isCrewDeployed && activeCrew != null)
+                {
+                    activeCrew.ReturnToTruck();
+                }
                 targetFire = newTarget;
                 hasLoggedSpray = false;
             }
         }
         else
         {
+            if (isCrewDeployed && activeCrew != null)
+            {
+                activeCrew.ReturnToTruck();
+            }
             targetFire = null;
             hasLoggedSpray = false;
         }
@@ -45,6 +79,10 @@ public class FireTruck : MonoBehaviour
     {
         if (targetFire != target)
         {
+            if (isCrewDeployed && activeCrew != null)
+            {
+                activeCrew.ReturnToTruck();
+            }
             targetFire = target;
             hasLoggedSpray = false;
         }
@@ -74,6 +112,56 @@ public class FireTruck : MonoBehaviour
         return false;
     }
 
+    private void DeployCrew()
+    {
+        if (isCrewDeployed || crewPrefab == null || targetFire == null) return;
+
+        // Instansiasi crew di dekat truk
+        GameObject crewObj = Instantiate(crewPrefab, transform.position + transform.forward * 1.5f, Quaternion.identity);
+        
+        // Dapatkan komponen FirefighterCrew
+        activeCrew = crewObj.GetComponent<FirefighterCrew>();
+        if (activeCrew != null)
+        {
+            isCrewDeployed = true;
+            
+            // Ambil power dari UnitIdentity jika ada, kalau tidak pakai extinguishPower
+            float power = extinguishPower;
+            if (TryGetComponent(out UnitIdentity ui))
+            {
+                power = ui.power;
+            }
+
+            activeCrew.Initialize(this, targetFire, power);
+            
+            // Setup NavMeshAgent crew
+            NavMeshAgent crewAgent = crewObj.GetComponent<NavMeshAgent>();
+            if (crewAgent != null)
+            {
+                // -1 mengaktifkan semua area mask agar crew bisa jalan di grass dan dense forest
+                crewAgent.areaMask = -1;
+            }
+        }
+    }
+
+    public void OnCrewReturned()
+    {
+        activeCrew = null;
+        isCrewDeployed = false;
+        targetFire = null;
+        
+        if (TryGetComponent(out UnitIdentity ui))
+        {
+            ui.targetObject = null;
+            ui.isManualControlled = false;
+        }
+        
+        if (agent != null)
+        {
+            agent.isStopped = false;
+        }
+    }
+
     void Update()
     {
         // 1. Logika isi ulang air jika dekat HQ atau Hidran
@@ -92,50 +180,61 @@ public class FireTruck : MonoBehaviour
             if (ui.isStalled || ui.isTraining)
             {
                 targetFire = null;
+                if (activeCrew != null)
+                {
+                    Destroy(activeCrew.gameObject);
+                    activeCrew = null;
+                    isCrewDeployed = false;
+                }
                 return;
             }
         }
 
-        // 2. Logika menyemprot jika dekat dengan target rumah terbakar
+        // Jika crew sedang dideploy, hentikan truk dan biarkan crew bekerja
+        if (isCrewDeployed)
+        {
+            if (agent != null)
+            {
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
+            }
+
+            // Jika air habis atau target tidak terbakar lagi, suruh crew kembali
+            if (currentWater <= 0f || targetFire == null || targetFire.currentStatus != HouseStatus.Terbakar)
+            {
+                if (activeCrew != null)
+                {
+                    activeCrew.ReturnToTruck();
+                }
+            }
+            return;
+        }
+
+        // 2. Logika pergerakan truk ke arah target terbakar dan mendeploy crew
         if (targetFire != null)
         {
             if (targetFire.currentStatus == HouseStatus.Terbakar)
             {
-                float distance = Vector3.Distance(transform.position, targetFire.transform.position);
-
-                if (distance <= stopDistance)
+                if (agent != null)
                 {
-                    agent.isStopped = true; 
-
-                    // Pastikan air masih ada sebelum menyemprot
-                    if (currentWater > 0f)
+                    if (agent.destination != targetFire.transform.position)
                     {
-                        targetFire.Extinguish(extinguishPower);
-                        currentWater -= waterConsumptionRate * Time.deltaTime;
-                        if (currentWater < 0) currentWater = 0;
+                        agent.SetDestination(targetFire.transform.position);
+                    }
+                    
+                    // Cek apakah truk sudah sampai/parkir di jalan terdekat ke target
+                    bool isTruckParked = !agent.pathPending && 
+                                         (agent.remainingDistance <= agent.stoppingDistance + 0.5f || agent.velocity.sqrMagnitude < 0.05f);
 
-                        if (!hasLoggedSpray)
-                        {
-                            Debug.Log($"Mulai menyemprot {targetFire.gameObject.name}. Sisa Air: {currentWater:F1}");
-                            hasLoggedSpray = true;
-                        }
+                    if (isTruckParked)
+                    {
+                        agent.isStopped = true;
+                        DeployCrew();
                     }
                     else
                     {
-                        Debug.LogWarning("Air habis! Harus isi ulang di HQ atau Hidran.");
-                        // Lepas target agar mobil pulang ke HQ secara otomatis untuk isi ulang
-                        targetFire = null;
-                        hasLoggedSpray = false;
-                        if (ui != null)
-                        {
-                            ui.targetObject = null;
-                            ui.isManualControlled = false;
-                        }
+                        agent.isStopped = false;
                     }
-                }
-                else
-                {
-                    agent.isStopped = false;
                 }
             }
             else if (targetFire.currentStatus == HouseStatus.Aman)
@@ -150,7 +249,10 @@ public class FireTruck : MonoBehaviour
         }
         else
         {
-            if (agent != null) agent.isStopped = false;
+            if (agent != null && ui != null && !ui.isManualControlled && ui.targetObject == null)
+            {
+                // Biarkan agent bergerak ke arah rumah (HQ)
+            }
         }
     }
 }

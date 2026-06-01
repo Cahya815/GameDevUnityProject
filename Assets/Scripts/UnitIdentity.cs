@@ -117,16 +117,23 @@ public class UnitIdentity : MonoBehaviour
         // 2. LOGIKA KERJA
         if (targetObject != null) {
             isReturningHome = false;
-            agent.isStopped = false;
 
-            float dist = Vector3.Distance(transform.position, targetObject.transform.position);
-            
-            if (!isManualControlled) {
-                agent.SetDestination(targetObject.transform.position);
-            }
+            if (jenisUnit == UnitType.Firefighter) {
+                // Truk pemadam digerakkan ke arah target, tapi tidak memadamkan langsung (di-handle oleh FireTruck dan Crew)
+                if (!isManualControlled) {
+                    agent.SetDestination(targetObject.transform.position);
+                }
+            } else {
+                agent.isStopped = false;
+                float dist = Vector3.Distance(transform.position, targetObject.transform.position);
+                
+                if (!isManualControlled) {
+                    agent.SetDestination(targetObject.transform.position);
+                }
 
-            if (dist < 3.5f) {
-                DoWork();
+                if (dist < 3.5f) {
+                    DoWork();
+                }
             }
         }
     }
