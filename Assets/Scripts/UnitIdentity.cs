@@ -146,7 +146,7 @@ public class UnitIdentity : MonoBehaviour
             if (TryGetComponent(out FireTruck ft)) {
                 if (ft.currentWater <= 0) {
                     Debug.LogWarning($"{gameObject.name} kehabisan air! Tidak bisa memadamkan.");
-                    // Lepas target agar pulang ke HQ untuk isi ulang otomatis
+                    // kok mencet 0 malah kepause ya
                     targetObject = null;
                     isManualControlled = false;
                     ft.SetTarget(null);
