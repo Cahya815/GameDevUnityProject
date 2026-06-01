@@ -135,7 +135,7 @@ public class FirefighterCrew : MonoBehaviour
                 // Kembali masuk ke truk
                 Debug.Log("[Crew] Returned to truck safely.");
                 parentTruck.OnCrewReturned();
-                Destroy(gameObject);
+                gameObject.SetActive(false);
             }
         }
     }

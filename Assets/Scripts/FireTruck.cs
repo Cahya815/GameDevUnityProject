@@ -28,7 +28,14 @@ public class FireTruck : MonoBehaviour
 
     void Start()
     {
-        if (crewPrefab == null)
+        // Cari apakah sudah ada crew di dalam mobil (sebagai child object)
+        activeCrew = GetComponentInChildren<FirefighterCrew>(true);
+        if (activeCrew != null)
+        {
+            crewPrefab = activeCrew.gameObject;
+            activeCrew.gameObject.SetActive(false); // Pastikan nonaktif di awal game
+        }
+        else if (crewPrefab == null)
         {
             // Coba cari di folder Resources jika ada
             crewPrefab = Resources.Load<GameObject>("FirefighterCrew");
@@ -116,11 +123,22 @@ public class FireTruck : MonoBehaviour
     {
         if (isCrewDeployed || crewPrefab == null || targetFire == null) return;
 
-        // Instansiasi crew di dekat truk
-        GameObject crewObj = Instantiate(crewPrefab, transform.position + transform.forward * 1.5f, Quaternion.identity);
-        
-        // Dapatkan komponen FirefighterCrew
-        activeCrew = crewObj.GetComponent<FirefighterCrew>();
+        GameObject crewObj = null;
+
+        // Jika crew sudah ada sebagai child, kita tinggal aktifkan dan posisikan ulang
+        if (activeCrew != null)
+        {
+            crewObj = activeCrew.gameObject;
+            crewObj.transform.position = transform.position + transform.forward * 1.5f;
+            crewObj.SetActive(true);
+        }
+        else
+        {
+            // Jika tidak ada child, kita spawn dari prefab
+            crewObj = Instantiate(crewPrefab, transform.position + transform.forward * 1.5f, Quaternion.identity);
+            activeCrew = crewObj.GetComponent<FirefighterCrew>();
+        }
+
         if (activeCrew != null)
         {
             isCrewDeployed = true;
@@ -140,15 +158,22 @@ public class FireTruck : MonoBehaviour
             {
                 // -1 mengaktifkan semua area mask agar crew bisa jalan di grass dan dense forest
                 crewAgent.areaMask = -1;
+                
+                // Pindahkan agent ke posisi warp yang benar agar NavMesh tidak meleset
+                crewAgent.Warp(transform.position + transform.forward * 1.5f);
             }
         }
     }
 
     public void OnCrewReturned()
     {
-        activeCrew = null;
         isCrewDeployed = false;
         targetFire = null;
+        
+        if (activeCrew != null)
+        {
+            activeCrew.gameObject.SetActive(false);
+        }
         
         if (TryGetComponent(out UnitIdentity ui))
         {
@@ -182,8 +207,7 @@ public class FireTruck : MonoBehaviour
                 targetFire = null;
                 if (activeCrew != null)
                 {
-                    Destroy(activeCrew.gameObject);
-                    activeCrew = null;
+                    activeCrew.gameObject.SetActive(false);
                     isCrewDeployed = false;
                 }
                 return;
