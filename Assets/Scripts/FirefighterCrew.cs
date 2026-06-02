@@ -13,6 +13,7 @@ public class FirefighterCrew : MonoBehaviour
     private FireTruck parentTruck;
     private Flammable targetFire;
     private NavMeshAgent agent;
+    private bool wasInitialized = false;
 
     private enum CrewState
     {
@@ -36,6 +37,7 @@ public class FirefighterCrew : MonoBehaviour
         targetFire = target;
         extinguishPower = power;
         currentState = CrewState.GoingToTarget;
+        wasInitialized = true;
 
         if (agent != null)
         {
@@ -48,10 +50,17 @@ public class FirefighterCrew : MonoBehaviour
 
     void Update()
     {
-        if (parentTruck == null)
+        // Hanya hancurkan jika crew sudah pernah diinisialisasi dan truknya hilang/hancur
+        if (wasInitialized && parentTruck == null)
         {
             // Jika truk hancur atau hilang, hancurkan crew
             Destroy(gameObject);
+            return;
+        }
+
+        // Jika belum diinisialisasi, jangan lakukan apa-apa
+        if (!wasInitialized)
+        {
             return;
         }
 
