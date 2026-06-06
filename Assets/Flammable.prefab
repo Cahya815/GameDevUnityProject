@@ -112,7 +112,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &4068543491428893737
+--- !u!1 &5713248698533436926
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -120,47 +120,107 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 133632153864575312}
-  - component: {fileID: 8008016948435241149}
-  - component: {fileID: 3011414986348452873}
-  - component: {fileID: 7659844201729624547}
+  - component: {fileID: 3634309659783324838}
+  - component: {fileID: 5775371161646070063}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Flammable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &133632153864575312
+--- !u!4 &3634309659783324838
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4068543491428893737}
+  m_GameObject: {fileID: 5713248698533436926}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.1761198, y: 0.35239, z: -0.37314987}
-  m_LocalScale: {x: 3, y: 1, z: 5}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 15.36147, y: -0, z: 12.20792}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2691898497536370030}
+  - {fileID: 3709908783074636196}
+  - {fileID: 4956281617261167449}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5775371161646070063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5713248698533436926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be53b23790460fc4e8822b411a33f4aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Flammable
+  isTree: 1
+  burnOutTimer: 30
+  regenerationDuration: 20
+  canSpreadFire: 1
+  spreadRadius: 6
+  spreadInterval: 6
+  spreadVariance: 10
+  currentStatus: 0
+  isBurning: 0
+  fireHealth: 10
+  fireEffect: {fileID: 2925475062389121904}
+  meshNormal: {fileID: 8440938116057779797}
+  meshPuing: {fileID: 1061175277844052299}
+--- !u!1 &8440938116057779797
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3709908783074636196}
+  - component: {fileID: 599226823397300647}
+  - component: {fileID: 3361655094644569566}
+  - component: {fileID: 7095621207082958445}
+  m_Layer: 0
+  m_Name: Home (3)
+  m_TagString: Interactable
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3709908783074636196
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8440938116057779797}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.6477108, y: -0, z: -0, w: 0.7618863}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3634309659783324838}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &8008016948435241149
+  m_LocalEulerAnglesHint: {x: -80.738, y: 0, z: 0}
+--- !u!33 &599226823397300647
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4068543491428893737}
+  m_GameObject: {fileID: 8440938116057779797}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &3011414986348452873
+--- !u!23 &3361655094644569566
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4068543491428893737}
+  m_GameObject: {fileID: 8440938116057779797}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -203,13 +263,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &7659844201729624547
+--- !u!65 &7095621207082958445
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4068543491428893737}
+  m_GameObject: {fileID: 8440938116057779797}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -224,66 +284,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &5713248698533436926
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3634309659783324838}
-  - component: {fileID: 5775371161646070063}
-  m_Layer: 0
-  m_Name: Flammable
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3634309659783324838
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5713248698533436926}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.36147, y: -0, z: 12.20792}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2691898497536370030}
-  - {fileID: 4956281617261167449}
-  - {fileID: 133632153864575312}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5775371161646070063
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5713248698533436926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be53b23790460fc4e8822b411a33f4aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Flammable
-  isTree: 1
-  burnOutTimer: 30
-  regenerationDuration: 20
-  canSpreadFire: 1
-  spreadRadius: 6
-  spreadInterval: 6
-  spreadVariance: 10
-  currentStatus: 0
-  isBurning: 0
-  fireHealth: 10
-  fireEffect: {fileID: 2925475062389121904}
-  meshNormal: {fileID: 4068543491428893737}
-  meshPuing: {fileID: 1061175277844052299}
 --- !u!1001 &4203315603875728604
 PrefabInstance:
   m_ObjectHideFlags: 0

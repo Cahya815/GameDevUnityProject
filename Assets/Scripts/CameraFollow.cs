@@ -13,7 +13,7 @@ public class CameraController : MonoBehaviour
         float moveX = Input.GetAxis("Horizontal"); // A dan D
         float moveZ = Input.GetAxis("Vertical");   // W dan S
 
-        // Kita gerakkan kamera berdasarkan arah 'Forward' dan 'Right' kamera itu sendiri
+        // preview apakah final render jika aplikasi di ekspor kok kaya kepotong gitu visual gaenak nanti ada see through nya kkok bisa ya
         // Tapi kita nolkan sumbu Y agar kamera tidak terbang ke atas
         Vector3 forward = transform.forward;
         forward.y = 0;
