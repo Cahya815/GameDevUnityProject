@@ -8,7 +8,7 @@ public class LevelDirector : MonoBehaviour
     public Flammable[] allHouses; // Variabel asal (ada 's')
     
     [Header("Grace Period after Login/Tutorial")]
-    public float gracePeriodDuration = 10f;
+    public float gracePeriodDuration = 1f;
     private float gracePeriodTimer = 0f;
     private bool hasFinishedLoginGrace = false;
 
