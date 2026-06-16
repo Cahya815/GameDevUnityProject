@@ -5,7 +5,9 @@ using System.Linq;
 public class LevelDirector : MonoBehaviour
 {
     public int currentLevel = 1;
-    public Flammable[] allHouses; // Variabel asal (ada 's')
+    
+    // Bikin private biar gak perlu drag-drop di Inspector
+    private Flammable[] semuaRumah; 
     
     [Header("Grace Period after Login/Tutorial")]
     public float gracePeriodDuration = 1f;
@@ -17,11 +19,10 @@ public class LevelDirector : MonoBehaviour
 
     void Start() 
     { 
-        // Otomatis cari semua rumah jika lupa narik di inspector
-        if (allHouses == null || allHouses.Length == 0)
-        {
-            allHouses = Object.FindObjectsByType<Flammable>(FindObjectsSortMode.None);
-        }
+        // Otomatis deteksi semua objek Flammable di scene saat game dimulai
+        semuaRumah = Object.FindObjectsByType<Flammable>(FindObjectsSortMode.None);
+        Debug.Log("Sistem Otomatis Berhasil Menemukan " + semuaRumah.Length + " Rumah Warga!");
+        
         SetDifficulty(); 
         gracePeriodTimer = gracePeriodDuration;
     }
@@ -62,8 +63,10 @@ public class LevelDirector : MonoBehaviour
 
     void TriggerFire()
     {
+        // PENCEGAHAN EROR: Cek dulu array-nya kosongan atau tidak
+        if (semuaRumah == null || semuaRumah.Length == 0) return;
         
-        var safeHouses = System.Array.FindAll(allHouses, (Flammable h) => h.currentStatus == HouseStatus.Aman);
+        var safeHouses = System.Array.FindAll(semuaRumah, (Flammable h) => h != null && h.currentStatus == HouseStatus.Aman);
         
         if (safeHouses.Length > 0)
         {
