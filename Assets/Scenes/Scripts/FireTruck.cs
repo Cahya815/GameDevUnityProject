@@ -247,8 +247,11 @@ public class FireTruck : MonoBehaviour
                     }
                     
                     // Cek apakah truk sudah sampai/parkir di jalan terdekat ke target
+                    float distToTarget = Vector3.Distance(transform.position, targetFire.transform.position);
+                    bool isNearTarget = distToTarget <= 25f;
+
                     bool isTruckParked = !agent.pathPending && 
-                                         (agent.remainingDistance <= agent.stoppingDistance + 0.5f || agent.velocity.sqrMagnitude < 0.05f);
+                                         (agent.remainingDistance <= agent.stoppingDistance + 0.5f || (isNearTarget && agent.velocity.sqrMagnitude < 0.05f));
 
                     if (isTruckParked)
                     {
