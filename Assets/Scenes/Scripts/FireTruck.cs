@@ -223,8 +223,14 @@ public class FireTruck : MonoBehaviour
                 agent.velocity = Vector3.zero;
             }
 
-            // Jika air habis atau target tidak terbakar lagi, suruh crew kembali
-            if (currentWater <= 0f || targetFire == null || targetFire.currentStatus != HouseStatus.Terbakar)
+            // Jika air habis (hanya untuk kebakaran) atau target tidak aktif lagi, suruh crew kembali
+            bool shouldReturn = targetFire == null || !targetFire.IsActiveFirefighterEmergency();
+            if (targetFire != null && targetFire.currentStatus == HouseStatus.Terbakar && currentWater <= 0f)
+            {
+                shouldReturn = true;
+            }
+
+            if (shouldReturn)
             {
                 if (activeCrew != null)
                 {
@@ -234,10 +240,10 @@ public class FireTruck : MonoBehaviour
             return;
         }
 
-        // 2. Logika pergerakan truk ke arah target terbakar dan mendeploy crew
+        // 2. Logika pergerakan truk ke arah target terbakar/darurat dan mendeploy crew
         if (targetFire != null)
         {
-            if (targetFire.currentStatus == HouseStatus.Terbakar)
+            if (targetFire.IsActiveFirefighterEmergency())
             {
                 if (agent != null)
                 {
@@ -264,13 +270,9 @@ public class FireTruck : MonoBehaviour
                     }
                 }
             }
-            else if (targetFire.currentStatus == HouseStatus.Aman)
-            {
-                targetFire = null;
-                if (agent != null) agent.isStopped = false;
-            }
             else
             {
+                targetFire = null;
                 if (agent != null) agent.isStopped = false;
             }
         }

@@ -32,7 +32,17 @@ public class Flammable : MonoBehaviour
     public GameObject meshNormal;
     public GameObject meshPuing; // Untuk Pohon, ini merepresentasikan "Pohon Gosong"
 
+    [Header("Animal Emergency Visuals")]
+    public GameObject snakeVisual;
+    public GameObject horseVisual;
+
+    public bool IsActiveFirefighterEmergency()
+    {
+        return currentStatus == HouseStatus.Terbakar || currentStatus == HouseStatus.AdaUlar || currentStatus == HouseStatus.KudaLepas;
+    }
+
     void Start() {
+        EnsureAnimalVisuals();
         // Konfigurasi dinamis antara Rumah vs Pohon demi balancing game
         if (isTree) {
             burnOutTimer = 15f;           // Pohon lebih rentan dan cepat gosong
@@ -159,10 +169,107 @@ public class Flammable : MonoBehaviour
         UpdateVisuals();
     }
     
+    private void EnsureAnimalVisuals()
+    {
+        if (snakeVisual == null)
+        {
+            Transform child = transform.Find("SnakeVisual");
+            if (child != null)
+            {
+                snakeVisual = child.gameObject;
+            }
+            else
+            {
+                GameObject placeholder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                placeholder.name = "SnakeVisual";
+                placeholder.transform.SetParent(this.transform);
+                placeholder.transform.localPosition = new Vector3(-0.8f, 0.5f, -0.8f);
+                placeholder.transform.localScale = new Vector3(0.2f, 0.4f, 0.2f);
+                var renderer = placeholder.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material.color = Color.green;
+                }
+                var col = placeholder.GetComponent<Collider>();
+                if (col != null) Destroy(col);
+                
+                snakeVisual = placeholder;
+                snakeVisual.SetActive(false);
+            }
+        }
+
+        if (horseVisual == null)
+        {
+            Transform child = transform.Find("HorseVisual");
+            if (child != null)
+            {
+                horseVisual = child.gameObject;
+            }
+            else
+            {
+                GameObject placeholder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                placeholder.name = "HorseVisual";
+                placeholder.transform.SetParent(this.transform);
+                placeholder.transform.localPosition = new Vector3(0.8f, 0.5f, 0.8f);
+                placeholder.transform.localScale = new Vector3(0.6f, 0.6f, 0.9f);
+                var renderer = placeholder.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material.color = new Color(0.5f, 0.25f, 0.05f); // Brown
+                }
+                var col = placeholder.GetComponent<Collider>();
+                if (col != null) Destroy(col);
+
+                horseVisual = placeholder;
+                horseVisual.SetActive(false);
+            }
+        }
+    }
+
+    public void SetToAdaUlar() {
+        if (TutorialManager.isTutorialActive) return; 
+
+        currentStatus = HouseStatus.AdaUlar;
+        fireHealth = 40f; 
+        UpdateVisuals();
+        Debug.Log($"<color=green>Warga melaporkan adanya ULAR di {gameObject.name}! Damkar harap segera mengamankan.</color>");
+    }
+
+    public void SetToKudaLepas() {
+        if (TutorialManager.isTutorialActive) return; 
+
+        currentStatus = HouseStatus.KudaLepas;
+        fireHealth = 70f; 
+        UpdateVisuals();
+        Debug.Log($"<color=green>Warga melaporkan adanya KUDA LEPAS di sekitar {gameObject.name}! Damkar harap segera mengamankan.</color>");
+    }
+
+    public void HandleAnimalRescue(float p) {
+        if (TutorialManager.isTutorialActive) return; 
+
+        if (currentStatus == HouseStatus.AdaUlar || currentStatus == HouseStatus.KudaLepas) {
+            fireHealth -= p * Time.deltaTime;
+            if (fireHealth <= 0) {
+                string animalName = currentStatus == HouseStatus.AdaUlar ? "Ular" : "Kuda";
+                float reward = currentStatus == HouseStatus.AdaUlar ? 60f : 100f;
+                
+                SetToAman();
+                Debug.Log($"<color=green>Penyelamatan Selesai! {animalName} berhasil diamankan.</color>");
+                
+                if (EconomyManager.instance != null) {
+                    EconomyManager.instance.AddMoney(reward);
+                    EconomyManager.instance.OnMissionComplete(1, 0); 
+                }
+            }
+        }
+    }
+
     public void UpdateVisuals() {
         if (fireEffect != null) fireEffect.SetActive(false);
         if (meshNormal != null) meshNormal.SetActive(false);
         if (meshPuing != null) meshPuing.SetActive(false);
+        if (snakeVisual != null) snakeVisual.SetActive(false);
+        if (horseVisual != null) horseVisual.SetActive(false);
 
         if (TutorialManager.isTutorialActive) {
             if (meshNormal != null) meshNormal.SetActive(true);
@@ -181,6 +288,16 @@ public class Flammable : MonoBehaviour
 
             case HouseStatus.Puing:
                 if (meshPuing != null) meshPuing.SetActive(true); // Pohon Gosong atau Puing Rumah
+                break;
+
+            case HouseStatus.AdaUlar:
+                if (meshNormal != null) meshNormal.SetActive(true);
+                if (snakeVisual != null) snakeVisual.SetActive(true);
+                break;
+
+            case HouseStatus.KudaLepas:
+                if (meshNormal != null) meshNormal.SetActive(true);
+                if (horseVisual != null) horseVisual.SetActive(true);
                 break;
         }
     }

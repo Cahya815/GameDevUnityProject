@@ -76,12 +76,10 @@ public class UnitIdentity : MonoBehaviour
             if (targetObject.currentStatus == HouseStatus.Aman) {
                 isFinished = true;
             }
-            else if (jenisUnit == UnitType.Firefighter && targetObject.currentStatus == HouseStatus.Puing) {
-                // Jika rumah/pohon terlanjur hangus terbakar menjadi puing, tidak ada api lagi untuk disemprot
+            else if (jenisUnit == UnitType.Firefighter && !targetObject.IsActiveFirefighterEmergency()) {
                 isFinished = true;
             }
             else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing && targetObject.isTree) {
-                // Pohon gosong tidak perlu dibersihkan secara manual (ia regenerasi otomatis)
                 isFinished = true;
             }
 
@@ -141,19 +139,23 @@ public class UnitIdentity : MonoBehaviour
     public void DoWork() {
         if (targetObject == null) return;
 
-        if (jenisUnit == UnitType.Firefighter && targetObject.currentStatus == HouseStatus.Terbakar) {
-            // Cek apakah punya komponen FireTruck dan airnya habis
-            if (TryGetComponent(out FireTruck ft)) {
-                if (ft.currentWater <= 0) {
-                    Debug.LogWarning($"{gameObject.name} kehabisan air! Tidak bisa memadamkan.");
-                    // kok mencet 0 malah kepause ya
-                    targetObject = null;
-                    isManualControlled = false;
-                    ft.SetTarget(null);
-                    return;
+        if (jenisUnit == UnitType.Firefighter && targetObject.IsActiveFirefighterEmergency()) {
+            if (targetObject.currentStatus == HouseStatus.Terbakar) {
+                // Cek apakah punya komponen FireTruck dan airnya habis
+                if (TryGetComponent(out FireTruck ft)) {
+                    if (ft.currentWater <= 0) {
+                        Debug.LogWarning($"{gameObject.name} kehabisan air! Tidak bisa memadamkan.");
+                        // kok mencet 0 malah kepause ya
+                        targetObject = null;
+                        isManualControlled = false;
+                        ft.SetTarget(null);
+                        return;
+                    }
                 }
+                targetObject.Extinguish(power);
+            } else if (targetObject.currentStatus == HouseStatus.AdaUlar || targetObject.currentStatus == HouseStatus.KudaLepas) {
+                targetObject.HandleAnimalRescue(power);
             }
-            targetObject.Extinguish(power);
         } 
         else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing) {
             if (targetObject.isTree) {

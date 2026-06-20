@@ -82,7 +82,7 @@ public class FirefighterCrew : MonoBehaviour
 
     private void HandleGoingToTarget()
     {
-        if (targetFire == null || targetFire.currentStatus != HouseStatus.Terbakar)
+        if (targetFire == null || !targetFire.IsActiveFirefighterEmergency())
         {
             // Target sudah aman atau hancur sebelum sampai, pulang ke truk
             ReturnToTruck();
@@ -98,37 +98,45 @@ public class FirefighterCrew : MonoBehaviour
             {
                 agent.isStopped = true;
                 currentState = CrewState.Extinguishing;
-                Debug.Log($"[Crew] Arrived at target {targetFire.gameObject.name}, starting to extinguish.");
+                Debug.Log($"[Crew] Arrived at target {targetFire.gameObject.name}, starting rescue/extinguish action.");
             }
         }
     }
 
     private void HandleExtinguishing()
     {
-        if (targetFire == null || targetFire.currentStatus != HouseStatus.Terbakar)
+        if (targetFire == null || !targetFire.IsActiveFirefighterEmergency())
         {
             // Selesai memadamkan atau target hancur
-            Debug.Log("[Crew] Target extinguished or destroyed. Returning to truck.");
+            Debug.Log("[Crew] Target extinguished/secured or destroyed. Returning to truck.");
             ReturnToTruck();
             return;
         }
 
-        // Cek persediaan air truk
-        if (parentTruck.currentWater <= 0f)
+        if (targetFire.currentStatus == HouseStatus.Terbakar)
         {
-            Debug.LogWarning("[Crew] Truck out of water! Returning to truck.");
-            ReturnToTruck();
-            return;
+            // Cek persediaan air truk
+            if (parentTruck.currentWater <= 0f)
+            {
+                Debug.LogWarning("[Crew] Truck out of water! Returning to truck.");
+                ReturnToTruck();
+                return;
+            }
+
+            // Padamkan api
+            targetFire.Extinguish(extinguishPower);
+
+            // Konsumsi air dari tanki truk
+            parentTruck.currentWater -= parentTruck.waterConsumptionRate * Time.deltaTime;
+            if (parentTruck.currentWater < 0f)
+            {
+                parentTruck.currentWater = 0f;
+            }
         }
-
-        // Padamkan api
-        targetFire.Extinguish(extinguishPower);
-
-        // Konsumsi air dari tanki truk
-        parentTruck.currentWater -= parentTruck.waterConsumptionRate * Time.deltaTime;
-        if (parentTruck.currentWater < 0f)
+        else if (targetFire.currentStatus == HouseStatus.AdaUlar || targetFire.currentStatus == HouseStatus.KudaLepas)
         {
-            parentTruck.currentWater = 0f;
+            // Tidak butuh air untuk menangkap hewan
+            targetFire.HandleAnimalRescue(extinguishPower);
         }
     }
 

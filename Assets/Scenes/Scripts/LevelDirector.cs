@@ -48,7 +48,7 @@ public class LevelDirector : MonoBehaviour
         
         if (timer >= nextFireIn)
         {
-            TriggerFire();
+            TriggerEmergency();
             SetDifficulty(); 
             timer = 0;
         }
@@ -61,17 +61,30 @@ public class LevelDirector : MonoBehaviour
         else nextFireIn = Random.Range(2f, 5f);
     }
 
-    void TriggerFire()
+    void TriggerEmergency()
     {
-        // PENCEGAHAN EROR: Cek dulu array-nya kosongan atau tidak
         if (semuaRumah == null || semuaRumah.Length == 0) return;
         
         var safeHouses = System.Array.FindAll(semuaRumah, (Flammable h) => h != null && h.currentStatus == HouseStatus.Aman);
         
         if (safeHouses.Length > 0)
         {
-            // Panggil fungsi SetToTerbakar() agar visualnya juga berubah
-            safeHouses[Random.Range(0, safeHouses.Length)].SetToTerbakar();
+            Flammable chosenHouse = safeHouses[Random.Range(0, safeHouses.Length)];
+            
+            // Randomize the emergency type: 50% Fire, 25% Snake, 25% Loose Horse
+            float rand = Random.value;
+            if (rand < 0.5f)
+            {
+                chosenHouse.SetToTerbakar();
+            }
+            else if (rand < 0.75f)
+            {
+                chosenHouse.SetToAdaUlar();
+            }
+            else
+            {
+                chosenHouse.SetToKudaLepas();
+            }
         }
     }
 }

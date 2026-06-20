@@ -204,8 +204,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df13881e3bd53f140b51be645990e3c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HQUIManager
-  menuPanel: {fileID: 0}
-  infoText: {fileID: 0}
 --- !u!114 &18744133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1726,7 +1724,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5958651522448566639, guid: b3efc8478dbf03340a73306a1320d8b3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5200001
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 5958651522448566639, guid: b3efc8478dbf03340a73306a1320d8b3, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4623,9 +4621,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0ad06826d375d14284afed8a73fe8cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HQController
-  buildingName: Base HQ
-  level: 1
-  health: 500
 --- !u!1 &1564879620
 GameObject:
   m_ObjectHideFlags: 0
