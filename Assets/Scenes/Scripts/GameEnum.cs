@@ -1,2 +1,2 @@
 public enum UnitType { None, Firefighter, DisasterControl }
-public enum HouseStatus { Aman, Terbakar, Puing, AdaUlar, KudaLepas }
+public enum HouseStatus { Aman, Terbakar, Puing, AdaUlar }

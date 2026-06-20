@@ -71,19 +71,15 @@ public class LevelDirector : MonoBehaviour
         {
             Flammable chosenHouse = safeHouses[Random.Range(0, safeHouses.Length)];
             
-            // Randomize the emergency type: 50% Fire, 25% Snake, 25% Loose Horse
+            // Randomize the emergency type: 60% Fire, 40% Snake
             float rand = Random.value;
-            if (rand < 0.5f)
+            if (rand < 0.6f)
             {
                 chosenHouse.SetToTerbakar();
             }
-            else if (rand < 0.75f)
-            {
-                chosenHouse.SetToAdaUlar();
-            }
             else
             {
-                chosenHouse.SetToKudaLepas();
+                chosenHouse.SetToAdaUlar();
             }
         }
     }
