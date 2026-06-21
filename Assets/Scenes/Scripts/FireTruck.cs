@@ -39,6 +39,17 @@ public class FireTruck : MonoBehaviour
         {
             // Coba cari di folder Resources jika ada
             crewPrefab = Resources.Load<GameObject>("FirefighterCrew");
+            
+            if (crewPrefab == null)
+            {
+                Debug.LogError("<color=red><b>[ERROR] Crew Prefab Hilang di Mobil Pemadam!</b></color>\n" +
+                               "Ini terjadi karena Anda memasang prefab crew pada mobil yang ada di <b>Hierarchy (Scene)</b>, sedangkan mobil baru di-spawn dari <b>Prefab asli</b> di folder Project.\n\n" +
+                               "<b>CARA MEMPERBAIKI:</b>\n" +
+                               "1. Klik folder <b>Assets</b> di tab <b>Project</b> (bukan Hierarchy).\n" +
+                               "2. Temukan file prefab <b>FireTruck</b> (mobil damkar) Anda di sana, lalu klik 2x untuk membuka Prefab.\n" +
+                               "3. Pada Inspector prefab <b>FireTruck</b> tersebut, seret prefab <b>FirefighterCrew</b> Anda ke kolom <b>Crew Prefab</b>.\n" +
+                               "4. Jalankan kembali game Anda! Sekarang crew tidak akan missing lagi.");
+            }
         }
     }
 
@@ -229,7 +240,7 @@ public class FireTruck : MonoBehaviour
             return;
         }
 
-        // 2. Logika pergerakan truk ke arah target terbakar/darurat dan mendeploy crew ini perlu fix
+        // 2. Logika pergerakan truk ke arah target terbakar/darurat dan mendeploy crew
         if (targetFire != null)
         {
             if (targetFire.IsActiveFirefighterEmergency())
@@ -243,7 +254,7 @@ public class FireTruck : MonoBehaviour
                     
                     // Cek apakah truk sudah sampai/parkir di jalan terdekat ke target
                     float distToTarget = Vector3.Distance(transform.position, targetFire.transform.position);
-                    bool isNearTarget = distToTarget <= 25f;
+                    bool isNearTarget = distToTarget <= 2f;
 
                     bool isTruckParked = !agent.pathPending && 
                                          (agent.remainingDistance <= agent.stoppingDistance + 0.5f || (isNearTarget && agent.velocity.sqrMagnitude < 0.05f));
