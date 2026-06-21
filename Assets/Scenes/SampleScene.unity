@@ -183,7 +183,6 @@ GameObject:
   - component: {fileID: 18744135}
   - component: {fileID: 18744134}
   - component: {fileID: 18744133}
-  - component: {fileID: 18744132}
   - component: {fileID: 18744137}
   m_Layer: 5
   m_Name: Canvas
@@ -192,18 +191,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &18744132
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 18744131}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df13881e3bd53f140b51be645990e3c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HQUIManager
 --- !u!114 &18744133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3848,6 +3835,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 585126287121132216, guid: a949dd5f4fd94684d8b3302a7b725e18, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1175922510}
+    - targetCorrespondingSourceObject: {fileID: 585126287121132216, guid: a949dd5f4fd94684d8b3302a7b725e18, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1175922515}
   m_SourcePrefab: {fileID: 100100000, guid: a949dd5f4fd94684d8b3302a7b725e18, type: 3}
 --- !u!1 &1175922509 stripped
 GameObject:
@@ -3868,7 +3858,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0
+  m_StoppingDistance: 5
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -3946,6 +3936,33 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 240126667646398466, guid: a949dd5f4fd94684d8b3302a7b725e18, type: 3}
   m_PrefabInstance: {fileID: 1175922507}
   m_PrefabAsset: {fileID: 0}
+--- !u!54 &1175922515
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1175922509}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 80
+  m_CollisionDetection: 0
 --- !u!1 &1271414344
 GameObject:
   m_ObjectHideFlags: 0
@@ -4704,7 +4721,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 18744132}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: HQUIManager, Assembly-CSharp
         m_MethodName: CloseMenu
         m_Mode: 1
@@ -5050,7 +5067,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 18744132}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: HQUIManager, Assembly-CSharp
         m_MethodName: OnUpgradeClicked
         m_Mode: 1

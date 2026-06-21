@@ -240,7 +240,7 @@ public class FireTruck : MonoBehaviour
             return;
         }
 
-        // 2. Logika pergerakan truk ke arah target terbakar/darurat dan mendeploy crew
+        // 2. Logika pergerakan truk ke arah target terbakar/darurat dan mendeploy crew ini perlu fix
         if (targetFire != null)
         {
             if (targetFire.IsActiveFirefighterEmergency())
