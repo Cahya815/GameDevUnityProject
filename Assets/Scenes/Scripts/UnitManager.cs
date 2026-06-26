@@ -149,12 +149,36 @@ public void RecallAllUnits() {
     void MoveSelectedUnit() {
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
     if (Physics.Raycast(ray, out RaycastHit hit)) {
-        // Beri tahu unit untuk bergerak ke titik klik
-        selectedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(hit.point);
-        
         // Cek apakah yang diklik adalah rumah/pohon
         Flammable f = hit.collider.GetComponent<Flammable>();
         if (f == null) f = hit.collider.GetComponentInParent<Flammable>();
+
+        // Beri tahu unit untuk bergerak ke titik klik atau posisi Flammable
+        var agent = selectedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null) {
+            if (f != null) {
+                // Hitung parkir dinamis sesuai arah kedatangan unit saat ini agar tidak selalu parkir di belakang
+                Vector3 targetPos = f.transform.position;
+                Vector3 currentPos = agent.transform.position;
+                Vector3 direction = (currentPos - targetPos).normalized;
+                direction.y = 0;
+                if (direction == Vector3.zero) direction = agent.transform.forward;
+
+                float offsetDist = 3.5f; // Jarak aman di luar collider rumah
+                Vector3 targetDestination = targetPos + direction.normalized * offsetDist;
+
+                if (UnityEngine.AI.NavMesh.SamplePosition(targetDestination, out UnityEngine.AI.NavMeshHit navHit, 5f, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    agent.SetDestination(navHit.position);
+                }
+                else
+                {
+                    agent.SetDestination(targetPos);
+                }
+            } else {
+                agent.SetDestination(hit.point);
+            }
+        }
         
         if (f != null && f.isTree && selectedUnit.jenisUnit == UnitType.DisasterControl) {
             Debug.Log("<color=yellow>Unit pembersih tidak bisa membersihkan pohon gosong!</color>");
@@ -168,10 +192,44 @@ public void RecallAllUnits() {
 
         // Sinkronisasi target ke komponen spesifik mobil
         if (selectedUnit.TryGetComponent(out FireTruck ft)) {
-            ft.SetTarget(selectedUnit.targetObject);
+            if (selectedUnit.targetObject != null)
+                ft.SetTarget(selectedUnit.targetObject);
+            else
+                ft.SetTarget(hit.point);
         }
         if (selectedUnit.TryGetComponent(out DisasterUnit du)) {
-            du.SetTarget(selectedUnit.targetObject);
+            if (selectedUnit.targetObject != null)
+                du.SetTarget(selectedUnit.targetObject);
+            else
+                du.SetTarget(hit.point);
+        }
+
+        if (f != null) {
+            string canBeExtinguished = "";
+            if (selectedUnit.jenisUnit == UnitType.Firefighter) {
+                if (f.currentStatus == HouseStatus.Terbakar) {
+                    canBeExtinguished = " (Bisa Dipadamkan)";
+                } else if (f.currentStatus == HouseStatus.AdaUlar) {
+                    canBeExtinguished = " (Ada Ular - Bisa Diamankan)";
+                } else if (f.currentStatus == HouseStatus.Puing) {
+                    canBeExtinguished = " (Sudah Hangus Jadi Puing - Tidak Bisa Dipadamkan)";
+                } else {
+                    canBeExtinguished = " (Kondisi Aman - Tidak Perlu Dipadamkan)";
+                }
+            } else if (selectedUnit.jenisUnit == UnitType.DisasterControl) {
+                if (f.currentStatus == HouseStatus.Puing) {
+                    if (f.isTree) {
+                        canBeExtinguished = " (Pohon Gosong - Tidak Perlu Dibersihkan)";
+                    } else {
+                        canBeExtinguished = " (Bisa Dibersihkan)";
+                    }
+                } else {
+                    canBeExtinguished = " (Bukan Puing - Tidak Perlu Dibersihkan)";
+                }
+            }
+            Debug.Log("Unit " + selectedUnit.name + " diarahkan ke: " + f.gameObject.name + " di " + f.transform.position + canBeExtinguished);
+        } else {
+            Debug.Log("Unit " + selectedUnit.name + " diperintahkan ke: " + hit.point);
         }
     }
 }

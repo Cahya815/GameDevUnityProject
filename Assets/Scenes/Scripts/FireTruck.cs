@@ -4,7 +4,7 @@ using UnityEngine.AI;
 public class FireTruck : MonoBehaviour
 {
     public float extinguishPower = 20f;
-    public float stopDistance = 5f;
+    public float stopDistance = 2f;
     
     [Header("Water Tank Settings")]
     public float maxWater = 100f;
@@ -20,10 +20,15 @@ public class FireTruck : MonoBehaviour
     private Flammable targetFire;
     private NavMeshAgent agent;
     private bool hasLoggedSpray = false;
+    private Flammable lastSetDestinationTarget;
 
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.stoppingDistance = stopDistance;
+        }
     }
 
     void Start()
@@ -147,9 +152,7 @@ public class FireTruck : MonoBehaviour
                 power = ui.power;
             }
 
-            activeCrew.Initialize(this, targetFire, power);
-            
-            // Setup NavMeshAgent crew
+            // Setup NavMeshAgent crew TERLEBIH DAHULU sebelum Initialize agar Warp tidak menghapus path/destination!
             NavMeshAgent crewAgent = crewObj.GetComponent<NavMeshAgent>();
             if (crewAgent != null)
             {
@@ -159,6 +162,8 @@ public class FireTruck : MonoBehaviour
                 // Pindahkan agent ke posisi warp yang benar agar NavMesh tidak meleset
                 crewAgent.Warp(transform.position + transform.forward * 1.5f);
             }
+
+            activeCrew.Initialize(this, targetFire, power);
         }
     }
 
@@ -166,6 +171,7 @@ public class FireTruck : MonoBehaviour
     {
         isCrewDeployed = false;
         targetFire = null;
+        lastSetDestinationTarget = null;
         
         if (activeCrew != null)
         {
@@ -244,14 +250,16 @@ public class FireTruck : MonoBehaviour
             {
                 if (agent != null)
                 {
-                    if (agent.destination != targetFire.transform.position)
+                    if (lastSetDestinationTarget != targetFire)
                     {
                         agent.SetDestination(targetFire.transform.position);
+                        lastSetDestinationTarget = targetFire;
                     }
                     
                     // Cek apakah truk sudah sampai/parkir di jalan terdekat ke target
                     float distToTarget = Vector3.Distance(transform.position, targetFire.transform.position);
-                    bool isNearTarget = distToTarget <= 2f;
+                    // stopDistance + 2.5f memberikan toleransi lebih karena gedung memiliki ukuran fisik (collider)
+                    bool isNearTarget = distToTarget <= (stopDistance + 2.5f);
 
                     bool isTruckParked = !agent.pathPending && 
                                          (agent.remainingDistance <= agent.stoppingDistance + 0.5f || (isNearTarget && agent.velocity.sqrMagnitude < 0.05f));
@@ -270,6 +278,7 @@ public class FireTruck : MonoBehaviour
             else
             {
                 targetFire = null;
+                lastSetDestinationTarget = null;
                 if (agent != null) agent.isStopped = false;
             }
         }

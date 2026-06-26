@@ -91,10 +91,14 @@ public class FirefighterCrew : MonoBehaviour
 
         if (agent != null)
         {
-            agent.SetDestination(targetFire.transform.position);
-
             float distance = Vector3.Distance(transform.position, targetFire.transform.position);
-            if (distance <= stoppingDistance)
+            
+            // Toleransi jika crew tertahan collider fisik gedung atau sampai di ujung NavMesh
+            bool hasArrived = distance <= stoppingDistance || 
+                              (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.5f) ||
+                              (distance <= stoppingDistance + 1.5f && agent.velocity.sqrMagnitude < 0.05f);
+
+            if (hasArrived)
             {
                 agent.isStopped = true;
                 currentState = CrewState.Extinguishing;
@@ -144,10 +148,9 @@ public class FirefighterCrew : MonoBehaviour
     {
         if (agent != null)
         {
-            agent.SetDestination(parentTruck.transform.position);
-
             float distance = Vector3.Distance(transform.position, parentTruck.transform.position);
-            if (distance <= 2f)
+            bool hasArrived = distance <= 2f || (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.5f);
+            if (hasArrived)
             {
                 // Kembali masuk ke truk
                 Debug.Log("[Crew] Returned to truck safely.");
