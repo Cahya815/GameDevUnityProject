@@ -200,6 +200,11 @@ public class Flammable : MonoBehaviour
 
     public void SetToAdaUlar() {
         if (TutorialManager.isTutorialActive) return; 
+        if (isTree) {
+            Debug.LogWarning($"[Flammable] SetToAdaUlar dipanggil pada pohon ({gameObject.name}), dialihkan ke SetToTerbakar.");
+            SetToTerbakar();
+            return;
+        }
 
         currentStatus = HouseStatus.AdaUlar;
         fireHealth = 40f; 

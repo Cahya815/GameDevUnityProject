@@ -64,6 +64,15 @@ public class GridManager : MonoBehaviour
                     Flammable targetFlammable = hit.collider.GetComponent<Flammable>();
                     if (targetFlammable == null) targetFlammable = hit.collider.GetComponentInParent<Flammable>();
 
+                    if (targetFlammable != null)
+                    {
+                        Debug.Log("Target: Flammable object (" + targetFlammable.name + ") clicked.");
+                    }
+                    else
+                    {
+                        Debug.Log("Target: Tanah kosong (Empty ground) clicked.");
+                    }
+
                     // Sinkronisasi target utama unit
                     um.selectedUnit.targetObject = targetFlammable;
                     
