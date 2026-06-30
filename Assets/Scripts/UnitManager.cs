@@ -1,13 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class UnitManager : MonoBehaviour 
+public class UnitManager : MonoBehaviour
 {
     public static UnitManager instance;
 
     public List<UnitIdentity> allUnits = new List<UnitIdentity>();
     public UnitIdentity selectedUnit;
-    
+
     [Header("Disaster Unit Unlock Settings")]
     public float disasterUnlockCost = 510f;
     public bool isDisasterUnitUnlocked = false;
@@ -45,7 +45,7 @@ public class UnitManager : MonoBehaviour
     if (Input.GetKeyDown(KeyCode.Alpha0)) {
         RecallAllUnits();
     }
-    
+
     // Klik kanan gerakin unit
     if (selectedUnit != null && Input.GetMouseButtonDown(1)) {
         MoveSelectedUnit();
@@ -57,7 +57,7 @@ public void DeselectAll() {
     if (selectedUnit != null) {
         selectedUnit.isManualControlled = false;
     }
-    
+
     selectedUnit = null; // Kosongkan pilihan
     Debug.Log("<color=cyan>Pilihan dilepas. Unit tetap melanjutkan pekerjaannya!</color>");
 }
@@ -68,10 +68,20 @@ public void RecallAllUnits() {
         if (unit != null) {
             unit.isManualControlled = false;
             unit.targetObject = null; // Hapus target agar kembali ke HQ
-            unit.ReturnToHome();
+            // Pastikan agent unit valid dan ada di NavMesh sebelum memberi perintah
+            if (unit.agent != null && unit.agent.isOnNavMesh)
+            {
+                unit.ReturnToHome();
+            }
+            else
+            {
+                // Jika tidak valid, set isReturningHome ke true agar unit tahu harus pulang
+                // Tapi tidak memindahkan atau menghentikan agen yang tidak ada/tidak aktif
+                unit.SetReturningHomeState(true);
+            }
         }
     }
-    
+
     selectedUnit = null; // Kosongkan pilihan
     Debug.Log("<color=yellow>Semua unit dipanggil pulang ke HQ!</color>");
 }
@@ -99,14 +109,14 @@ public void RecallAllUnits() {
     // Lepas status kontrol manual dari unit lain (JANGAN hapus targetObject mereka agar tetap bekerja otomatis!)
     foreach (var unit in allUnits) {
         if (unit != null && unit != unitToSelect) {
-            unit.isManualControlled = false; 
+            unit.isManualControlled = false;
         }
     }
 
     // Aktifkan unit yang dipilih
     selectedUnit = unitToSelect;
-    selectedUnit.isManualControlled = true; 
-    
+    selectedUnit.isManualControlled = true;
+
     // Pastikan agent unit yang baru dipilih tidak sedang berhenti (Stop)
     if(selectedUnit.agent != null) selectedUnit.agent.isStopped = false;
 
@@ -157,11 +167,11 @@ public void RecallAllUnits() {
     if (Physics.Raycast(ray, out RaycastHit hit)) {
         // Beri tahu unit untuk bergerak ke titik klik
         selectedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(hit.point);
-        
+
         // Cek apakah yang diklik adalah rumah/pohon
         Flammable f = hit.collider.GetComponent<Flammable>();
         if (f == null) f = hit.collider.GetComponentInParent<Flammable>();
-        
+
         if (f != null && f.isTree && selectedUnit.jenisUnit == UnitType.DisasterControl) {
             Debug.Log("<color=yellow>Unit pembersih tidak bisa membersihkan pohon gosong!</color>");
             selectedUnit.targetObject = null;

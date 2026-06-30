@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class UnitIdentity : MonoBehaviour 
+public class UnitIdentity : MonoBehaviour
 {
     [Header("Settings")]
     public UnitType jenisUnit;
@@ -19,9 +19,9 @@ public class UnitIdentity : MonoBehaviour
     public float engineDegradationRate = 0.5f; // berkurang 0.5% per detik saat aktif bekerja/jalan
 
     [Header("State")]
-    public Flammable targetObject; 
+    public Flammable targetObject;
     public bool isManualControlled = false;
-    
+
     public NavMeshAgent agent; // Sekarang UnitManager bisa ngasih perintah
     [HideInInspector] public Vector3 spawnPosition; // Koordinat rumah asli (HQ)
     private bool isReturningHome = false;
@@ -86,7 +86,7 @@ public class UnitIdentity : MonoBehaviour
             if (isFinished) {
                 targetObject = null;
                 isManualControlled = false;
-                
+
                 // Sinkronisasi target ke komponen spesifik mobil
                 if (TryGetComponent(out FireTruck ft)) {
                     ft.SetTarget(null);
@@ -100,10 +100,10 @@ public class UnitIdentity : MonoBehaviour
         // 1. LOGIKA BALIK KE RUMAH (Hanya jika tidak dikontrol & tidak punya kerjaan)
         if (!isManualControlled && targetObject == null) {
             float distToHome = Vector3.Distance(transform.position, spawnPosition);
-            
+
             if (distToHome > 1.5f && !isReturningHome) {
                 ReturnToHome();
-            } 
+            }
             else if (distToHome <= 1.5f) {
                 // Sampai di rumah, stop total (Idle)
                 isReturningHome = false;
@@ -124,7 +124,7 @@ public class UnitIdentity : MonoBehaviour
             } else {
                 agent.isStopped = false;
                 float dist = Vector3.Distance(transform.position, targetObject.transform.position);
-                
+
                 if (!isManualControlled) {
                     agent.SetDestination(targetObject.transform.position);
                 }
@@ -144,7 +144,7 @@ public class UnitIdentity : MonoBehaviour
                 // Cek apakah punya komponen FireTruck dan airnya habis
                 if (TryGetComponent(out FireTruck ft)) {
                     if (ft.currentWater <= 0) {
-                        Debug.LogWarning($"{gameObject.name} kehabisan air! Tidak bisa memadamkan.");
+                        Debug.LogWarning($"<color=red>{gameObject.name} kehabisan air! Tidak bisa memadamkan.</color>");
                         // kok mencet 0 malah kepause ya
                         targetObject = null;
                         isManualControlled = false;
@@ -156,7 +156,7 @@ public class UnitIdentity : MonoBehaviour
             } else if (targetObject.currentStatus == HouseStatus.AdaUlar) {
                 targetObject.HandleAnimalRescue(power);
             }
-        } 
+        }
         else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing) {
             if (targetObject.isTree) {
                 targetObject = null; // Pohon tidak perlu dibersihkan, lepas target
@@ -172,7 +172,7 @@ public class UnitIdentity : MonoBehaviour
         if (targetObject != null && targetObject.currentStatus == HouseStatus.Aman) {
             targetObject = null; //balik HQ
             isManualControlled = false;
-            
+
             if (TryGetComponent(out FireTruck ft)) {
                 ft.SetTarget(null);
             }
@@ -184,7 +184,7 @@ public class UnitIdentity : MonoBehaviour
 
     public void ReturnToHome() {
         isReturningHome = true;
-        if (agent != null) {
+        if (agent != null && agent.isOnNavMesh) {
             agent.isStopped = false;
             agent.SetDestination(spawnPosition);
         }
@@ -261,5 +261,10 @@ public class UnitIdentity : MonoBehaviour
         } else {
             Debug.LogWarning("<color=yellow>Uang tidak cukup untuk rehabilitasi mesin!</color>");
         }
+    }
+
+    public void SetReturningHomeState(bool state)
+    {
+        isReturningHome = state;
     }
 }
