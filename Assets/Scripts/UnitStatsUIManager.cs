@@ -49,13 +49,38 @@ public class UnitStatsUIManager : MonoBehaviour
         if (panelObject == null) return;
 
         // Ambil unit yang dipilih dari singleton UnitManager
-        if (UnitManager.instance == null || UnitManager.instance.selectedUnit == null)
+        // Ambil unit yang dipilih dari singleton UnitManager
+        if (UnitManager.instance == null || UnitManager.instance.selectedUnit == null || UnitManager.instance.selectedUnit.jenisUnit != UnitType.Firefighter)
         {
-            panelObject.SetActive(false);
+            if (panelObject != null && panelObject.activeSelf) // Cek apakah panel aktif sebelum menonaktifkan
+            {
+                panelObject.SetActive(false);
+                // Sembunyikan semua elemen UI terkait saat panel disembunyikan
+                titleText.gameObject.SetActive(false);
+                crewText.gameObject.SetActive(false);
+                waterText.gameObject.SetActive(false);
+                engineText.gameObject.SetActive(false);
+                waterBarFill.gameObject.SetActive(false);
+                engineBarFill.gameObject.SetActive(false);
+                repairButton.gameObject.SetActive(false);
+                trainButton.gameObject.SetActive(false);
+                waterBarParent.gameObject.SetActive(false);
+            }
             return;
         }
 
+        // Aktifkan semua elemen UI terkait saat panel diaktifkan
         panelObject.SetActive(true);
+        titleText.gameObject.SetActive(true);
+        crewText.gameObject.SetActive(true);
+        waterText.gameObject.SetActive(true);
+        engineText.gameObject.SetActive(true);
+        waterBarFill.gameObject.SetActive(true);
+        engineBarFill.gameObject.SetActive(true);
+        repairButton.gameObject.SetActive(true);
+        trainButton.gameObject.SetActive(true);
+        // waterBarParent akan dihandle lebih lanjut di dalam if (unit.jenisUnit == UnitType.Firefighter)
+
         UnitIdentity unit = UnitManager.instance.selectedUnit;
 
         // 1. Update Title (Nama Unit)
@@ -79,59 +104,87 @@ public class UnitStatsUIManager : MonoBehaviour
             trainButton.interactable = canAffordTrain && !unit.isStalled;
         }
 
-        // 3. Update Engine Condition & Bar
-        if (unit.isStalled)
+        // 3. Update Engine Condition & Bar (Hanya aktif di HQ Level 3 ke atas)
+        if (HQController.currentHQLevel >= 3)
         {
-            // Teks mogok kedap-kedip pakai sin fasa waktu
-            float blink = Mathf.Abs(Mathf.Sin(Time.time * 5f));
-            string colorCode = blink > 0.5f ? "red" : "yellow";
-            engineText.text = $"Kondisi Mesin: <color={colorCode}>MOGOK (Butuh Service!)</color>";
-            engineBarFill.color = Color.red;
+            engineText.gameObject.SetActive(true);
+            engineBarFill.gameObject.SetActive(true);
+            repairButton.gameObject.SetActive(true);
+
+            if (unit.isStalled)
+            {
+                // Teks mogok kedap-kedip pakai sin fasa waktu
+                float blink = Mathf.Abs(Mathf.Sin(Time.time * 5f));
+                string colorCode = blink > 0.5f ? "red" : "yellow";
+                engineText.text = $"Kondisi Mesin: <color={colorCode}>MOGOK (Butuh Service!)</color>";
+                engineBarFill.color = Color.red;
+            }
+            else
+            {
+                engineText.text = $"Kondisi Mesin: {unit.engineCondition:F0}%";
+                // Ubah warna bar dinamis (Merah jika kritis, hijau jika bagus)
+                if (unit.engineCondition > 50f)
+                    engineBarFill.color = Color.green;
+                else if (unit.engineCondition > 20f)
+                    engineBarFill.color = new Color(1f, 0.6f, 0f); // Orange
+                else
+                    engineBarFill.color = Color.red;
+            }
+            engineBarFill.fillAmount = unit.engineCondition / 100f;
+
+            // Biaya rehabilitasi / service mesin
+            float repairCost = (100f - unit.engineCondition) * 1f;
+            if (repairCost < 5f) repairCost = 5f;
+            repairButtonText.text = unit.isStalled
+                ? $"Rehabilitasi Mesin\n<size=10f>Biaya: ${repairCost:F0}</size>"
+                : $"Rawat Mesin\n<size=10f>Biaya: ${repairCost:F0}</size>";
+
+            bool canAffordRepair = EconomyManager.instance != null && EconomyManager.instance.currentMoney >= repairCost;
+            repairButton.interactable = canAffordRepair && unit.engineCondition < 98f;
         }
         else
         {
-            engineText.text = $"Kondisi Mesin: {unit.engineCondition:F0}%";
-            // Ubah warna bar dinamis (Merah jika kritis, hijau jika bagus)
-            if (unit.engineCondition > 50f)
-                engineBarFill.color = Color.green;
-            else if (unit.engineCondition > 20f)
-                engineBarFill.color = new Color(1f, 0.6f, 0f); // Orange
-            else
-                engineBarFill.color = Color.red;
+            engineText.gameObject.SetActive(false);
+            engineBarFill.gameObject.SetActive(false);
+            repairButton.gameObject.SetActive(false);
         }
-        engineBarFill.fillAmount = unit.engineCondition / 100f;
 
-        // Biaya rehabilitasi / service mesin
-        float repairCost = (100f - unit.engineCondition) * 1f;
-        if (repairCost < 5f) repairCost = 5f;
-        repairButtonText.text = unit.isStalled
-            ? $"Rehabilitasi Mesin\n<size=10f>Biaya: ${repairCost:F0}</size>"
-            : $"Rawat Mesin\n<size=10f>Biaya: ${repairCost:F0}</size>";
-
-        bool canAffordRepair = EconomyManager.instance != null && EconomyManager.instance.currentMoney >= repairCost;
-        repairButton.interactable = canAffordRepair && unit.engineCondition < 98f;
-
-        // 4. Update Water Tank (Hanya tampil untuk Firefighter / Mobil Pemadam)
-        if (unit.jenisUnit == UnitType.Firefighter)
+        // 4. Update Water Tank (Hanya tampil untuk Firefighter / Mobil Pemadam, dan aktif di HQ Level 3 ke atas)
+        if (HQController.currentHQLevel >= 3)
         {
-            waterBarParent.SetActive(true);
-            FireTruck ft = unit.GetComponent<FireTruck>();
-            if (ft != null)
-            {
-                waterText.text = $"Tangki Air: {ft.currentWater:F0} / {ft.maxWater:F0} Liter";
-                waterBarFill.fillAmount = ft.currentWater / ft.maxWater;
+            waterText.gameObject.SetActive(true);
+            waterBarFill.gameObject.SetActive(true);
 
-                // Ubah tinggi panel jika ada tanki air biar gak sesak
+            if (unit.jenisUnit == UnitType.Firefighter)
+            {
+                waterBarParent.SetActive(true);
+                FireTruck ft = unit.GetComponent<FireTruck>();
+                if (ft != null)
+                {
+                    waterText.text = $"Tangki Air: {ft.currentWater:F0} / {ft.maxWater:F0} Liter";
+                    waterBarFill.fillAmount = ft.currentWater / ft.maxWater;
+
+                    // Ubah tinggi panel jika ada tanki air biar gak sesak
+                    RectTransform panelRect = panelObject.GetComponent<RectTransform>();
+                    if (panelRect.sizeDelta.y != 160f) panelRect.sizeDelta = new Vector2(500f, 160f);
+                }
+            }
+            else
+            {
+                waterBarParent.SetActive(false);
+                // Perkecil tinggi panel jika tidak ada tangki air (Disaster unit)
                 RectTransform panelRect = panelObject.GetComponent<RectTransform>();
-                if (panelRect.sizeDelta.y != 160f) panelRect.sizeDelta = new Vector2(500f, 160f);
+                if (panelRect.sizeDelta.y != 120f) panelRect.sizeDelta = new Vector2(500f, 120f);
             }
         }
         else
         {
-            waterBarParent.SetActive(false);
+            waterText.gameObject.SetActive(false);
+            waterBarFill.gameObject.SetActive(false);
+            waterBarParent.SetActive(false); // Pastikan ini juga disembunyikan
             // Perkecil tinggi panel jika tidak ada tangki air (Disaster unit)
             RectTransform panelRect = panelObject.GetComponent<RectTransform>();
-            if (panelRect.sizeDelta.y != 120f) panelRect.sizeDelta = new Vector2(500f, 120f);
+            if (panelRect.sizeDelta.y != 120f) panelRect.sizeDelta = new Vector2(500f, 120f); // default ke ukuran kecil
         }
     }
 

@@ -37,7 +37,7 @@ public class HQUIManager : MonoBehaviour
                 ? "\n<color=green>Disaster Unit: Unlocked</color>" 
                 : $"\n<color=yellow>Disaster Unit: Locked (Cost: ${um.disasterUnlockCost})</color>";
         }
-        infoText.text = $"{currentHQ.buildingName}\nLevel: {currentHQ.level}\nHP: {currentHQ.health}{disasterStatus}";
+        infoText.text = $"{currentHQ.buildingName}\nLevel: {currentHQ.hqLevel}\nHP: {currentHQ.health}{disasterStatus}";
     }
 
     public void OnUpgradeClicked()

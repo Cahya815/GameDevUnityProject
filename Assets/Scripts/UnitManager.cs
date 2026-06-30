@@ -117,6 +117,12 @@ public void RecallAllUnits() {
     {
         if (isDisasterUnitUnlocked) return true;
 
+        if (HQController.currentHQLevel < 2)
+        {
+            Debug.LogWarning($"<color=red>HQ Level {HQController.currentHQLevel} terlalu rendah untuk membuka Disaster Unit! Dibutuhkan HQ Level 2.</color>");
+            return false;
+        }
+
         if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(disasterUnlockCost))
         {
             isDisasterUnitUnlocked = true;

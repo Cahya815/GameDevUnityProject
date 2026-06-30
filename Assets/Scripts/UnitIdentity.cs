@@ -192,10 +192,24 @@ public class UnitIdentity : MonoBehaviour
 
     public void StartTraining() {
         if (isTraining || isStalled) return;
-        
+
+        if (HQController.currentHQLevel < 2)
+        {
+            Debug.LogWarning($"<color=red>HQ Level {HQController.currentHQLevel} terlalu rendah untuk melatih crew! Dibutuhkan HQ Level 2.</color>");
+            return;
+        }
+
+        // Jika HQ Level 4, tidak ada batasan level crew. Jika tidak, batasi sesuai HQ Level.
+        int maxCrewLevel = (HQController.currentHQLevel >= 4) ? int.MaxValue : (HQController.currentHQLevel - 1);
+        if (crewLevel >= maxCrewLevel && HQController.currentHQLevel < 4)
+        {
+            Debug.LogWarning($"<color=red>Crew {gameObject.name} sudah mencapai level maksimum ({maxCrewLevel}) untuk HQ Level {HQController.currentHQLevel}! Upgrade HQ untuk melatih lebih lanjut.</color>");
+            return;
+        }
+
         float cost = crewLevel * 100f; // Biaya naik seiring level
         float duration = crewLevel * 5f; // Waktu latihan naik
-        
+
         if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(cost)) {
             isTraining = true;
             trainingDuration = duration;
@@ -204,14 +218,14 @@ public class UnitIdentity : MonoBehaviour
             isManualControlled = false;
             if (TryGetComponent(out FireTruck ft)) ft.SetTarget(null);
             if (TryGetComponent(out DisasterUnit du)) du.SetTarget(null);
-            
+
             // Teleport ke HQ untuk latihan
             transform.position = spawnPosition;
             if (agent != null) {
                 agent.Warp(spawnPosition);
                 agent.isStopped = true;
             }
-            
+
             Debug.Log($"<color=cyan>{gameObject.name} mulai Latihan Anggota (Level {crewLevel} -> {crewLevel + 1}). Biaya: ${cost}, Durasi: {duration}s</color>");
         } else {
             Debug.LogWarning("<color=yellow>Uang tidak cukup untuk Latihan Anggota!</color>");
@@ -230,9 +244,15 @@ public class UnitIdentity : MonoBehaviour
     }
 
     public void RehabilitateEngine() {
+        if (HQController.currentHQLevel < 3)
+        {
+            Debug.LogWarning($"<color=red>HQ Level {HQController.currentHQLevel} terlalu rendah untuk merehabilitasi mesin! Dibutuhkan HQ Level 3.</color>");
+            return;
+        }
+
         float cost = (100f - engineCondition) * 1f; // $1 per 1% damage
         if (cost < 5f) cost = 5f; // Minimal biaya $5
-        
+
         if (EconomyManager.instance != null && EconomyManager.instance.SpendMoney(cost)) {
             engineCondition = 100f;
             isStalled = false;
