@@ -4,6 +4,14 @@ using UnityEngine.UI;
 
 public class TutorialManager : MonoBehaviour
 {
+    public static TutorialManager instance;
+
+    private void Awake()
+    {
+        if (instance == null) instance = this;
+        else Destroy(gameObject);
+    }
+
     public GameObject tutorialPanel;
     public TextMeshProUGUI tutorialText;
     public Button nextButton;
@@ -15,17 +23,8 @@ public class TutorialManager : MonoBehaviour
 
     void Start()
     {
-        // Cek apakah tutorial sudah pernah selesai
-        // if (PlayerPrefs.GetInt("TutorialCompleted", 0) == 1)
-        // {
-        //     tutorialPanel.SetActive(false);
-        //     tutorialCompleted = true;
-        //     Debug.Log("Tutorial sudah selesai sebelumnya, skip tutorial");
-        //     return;
-        // }
-
-        isTutorialActive = true; // Pastikan status tutorial aktif saat mulai
-        ShowStep();
+        // Tutorial tidak auto-start lagi.
+        // Dipanggil dari ModeSelectionUI setelah player login.
     }
 
     public void StartTutorial()
@@ -69,39 +68,20 @@ public class TutorialManager : MonoBehaviour
 
     void EndTutorial()
     {
-        // JANGAN ubah isTutorialActive = false di sini. Biarkan ModeSelectionUI yang mematikannya nanti.
+        // Tutorial selesai, aktifkan game
         tutorialPanel.SetActive(false);
         tutorialText.text = "";
         nextButton.gameObject.SetActive(false);
         step = 0;
         tutorialCompleted = true;
-        
+
         // Simpan bahwa tutorial sudah selesai
         PlayerPrefs.SetInt("TutorialCompleted", 1);
         PlayerPrefs.Save();
-        
-        Debug.Log("Tutorial Selesai!");
-        
-        if (modeSelectionUI != null)
-        {
-            StartCoroutine(ShowModeSelectionDelayed());
-        }
-        else 
-        {
-            // Kalau misal gak ada UI mode selection, langsung matikan saja
-            isTutorialActive = false;
-        }
-    }
 
-    private System.Collections.IEnumerator ShowModeSelectionDelayed()
-    {
-        yield return new WaitForSeconds(0.5f);
-        
-        ModeSelectionUI modeUI = modeSelectionUI.GetComponent<ModeSelectionUI>();
-        if (modeUI != null)
-        {
-            modeUI.ShowModeSelection();
-            Debug.Log("<color=green>Mode Selection Panel ditampilkan</color>");
-        }
+        Debug.Log("Tutorial Selesai!");
+
+        // Tutorial selesai, aktifkan game
+        isTutorialActive = false;
     }
 }

@@ -17,9 +17,15 @@ public class ModeSelectionUI : MonoBehaviour
         return;
     }
 
-    // Jangan aktifkan panel di sini, biarkan TutorialManager yang handle
-    modePanel.SetActive(false);
-    loginPanel.SetActive(false);
+    // Langsung tampilkan panel login
+    modePanel.SetActive(true);
+    loginPanel.SetActive(true);
+
+    // Sembunyikan panel tutorial saat login
+    if (TutorialManager.instance != null && TutorialManager.instance.tutorialPanel != null)
+    {
+        TutorialManager.instance.tutorialPanel.SetActive(false);
+    }
 }
 
 public void ShowModeSelection()
@@ -40,8 +46,8 @@ public void ShowModeSelection()
         var _ = AuthManager.instance.LoginOnline(name, "password");
         GameDataManager.instance.InitializeDataHandler();
         
-        // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
-        TutorialManager.isTutorialActive = false;
+        // Mulai tutorial setelah login
+        TutorialManager.instance.StartTutorial();
 
         modePanel.SetActive(false);
         loginPanel.SetActive(false);
@@ -59,8 +65,8 @@ public void ShowModeSelection()
     AuthManager.instance.SelectOfflineMode(name);
     GameDataManager.instance.InitializeDataHandler();
     
-    // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
-    TutorialManager.isTutorialActive = false;
+    // Mulai tutorial setelah login
+    TutorialManager.instance.StartTutorial();
     
     // Sembunyikan panel sebelum load scene
     modePanel.SetActive(false);
@@ -81,8 +87,8 @@ public void ShowModeSelection()
         await AuthManager.instance.LoginOnline(name, "password");
         GameDataManager.instance.InitializeDataHandler();
         
-        // Matikan state tutorial supaya api (Flammable) bisa mulai bekerja lagi
-        TutorialManager.isTutorialActive = false;
+        // Mulai tutorial setelah login
+        TutorialManager.instance.StartTutorial();
         
         modePanel.SetActive(false);
         loginPanel.SetActive(false);

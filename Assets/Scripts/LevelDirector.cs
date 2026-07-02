@@ -10,7 +10,7 @@ public class LevelDirector : MonoBehaviour
     private Flammable[] semuaRumah; 
     
     [Header("Grace Period after Login/Tutorial")]
-    public float gracePeriodDuration = 1f;
+    public float gracePeriodDuration = 0f;
     private float gracePeriodTimer = 0f;
     private bool hasFinishedLoginGrace = false;
 
@@ -56,7 +56,7 @@ public class LevelDirector : MonoBehaviour
 
     void SetDifficulty()
     {
-        if (currentLevel == 1) nextFireIn = Random.Range(2f, 5f);
+        if (currentLevel == 1) nextFireIn = Random.Range(10f, 25f);
         else if (currentLevel == 2) nextFireIn = Random.Range(10f, 15f);
         else nextFireIn = Random.Range(2f, 5f);
     }
