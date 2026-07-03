@@ -40,6 +40,12 @@ public class Flammable : MonoBehaviour
         return currentStatus == HouseStatus.Terbakar || currentStatus == HouseStatus.AdaUlar;
     }
 
+    // ponytail: central gate — login AND tutorial must be done before fire logic runs
+    private static bool IsFlammableAllowed()
+    {
+        return AuthManager.instance != null && AuthManager.instance.isLoggedIn && TutorialManager.isTutorialCompleted;
+    }
+
     void Start() {
         EnsureAnimalVisuals();
         // Konfigurasi dinamis antara Rumah vs Pohon demi balancing game
@@ -59,7 +65,7 @@ public class Flammable : MonoBehaviour
     }
 
     void Update() {
-        if (TutorialManager.isTutorialActive) {
+        if (!IsFlammableAllowed()) {
             isBurning = false;
             return;
         }
@@ -101,7 +107,7 @@ public class Flammable : MonoBehaviour
 
     // Fungsi merembetkan api ke objek Flammable lain yang aman di sekitarnya
     void SpreadFireToNeighbors() {
-        if (TutorialManager.isTutorialActive) return;
+        if (!IsFlammableAllowed()) return;
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, spreadRadius);
         foreach (var col in colliders) {
@@ -114,7 +120,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void SetToTerbakar() {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
 
         currentStatus = HouseStatus.Terbakar;
         fireHealth = isTree ? 30f : 100f; // Pohon lebih mudah padam (HP api kecil) dibanding Rumah
@@ -128,7 +134,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void Extinguish(float p) {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
 
         if (currentStatus == HouseStatus.Terbakar) {
             fireHealth -= p * Time.deltaTime;
@@ -146,7 +152,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void CleanRubble(float s) {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
 
         if (isTree) return; // Pohon tidak perlu dibersihkan secara manual!
 
@@ -161,7 +167,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void SetToAman() {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
 
         currentStatus = HouseStatus.Aman;
         fireHealth = 0;
@@ -199,7 +205,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void SetToAdaUlar() {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
         if (isTree) {
             Debug.LogWarning($"[Flammable] SetToAdaUlar dipanggil pada pohon ({gameObject.name}), dialihkan ke SetToTerbakar.");
             SetToTerbakar();
@@ -213,7 +219,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void HandleAnimalRescue(float p) {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
 
         if (currentStatus == HouseStatus.AdaUlar) {
             fireHealth -= p * Time.deltaTime;
@@ -237,9 +243,9 @@ public class Flammable : MonoBehaviour
         if (meshPuing != null) meshPuing.SetActive(false);
         if (snakeVisual != null) snakeVisual.SetActive(false);
 
-        if (TutorialManager.isTutorialActive) {
+        if (!IsFlammableAllowed()) {
             if (meshNormal != null) meshNormal.SetActive(true);
-            return; 
+            return;
         }
 
         switch (currentStatus) {
@@ -264,7 +270,7 @@ public class Flammable : MonoBehaviour
     }
 
     public void SetToPuing() {
-        if (TutorialManager.isTutorialActive) return; 
+        if (!IsFlammableAllowed()) return; 
 
         currentStatus = HouseStatus.Puing;
         fireHealth = 0;

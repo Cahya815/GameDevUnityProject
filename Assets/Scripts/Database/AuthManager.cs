@@ -6,6 +6,7 @@ public class AuthManager : MonoBehaviour
     public static AuthManager instance;
     public string playerName { get; private set; }
     public bool isOnlineMode { get; private set; }
+    public bool isLoggedIn { get; private set; }
 
    private void Awake()
 {
@@ -25,6 +26,7 @@ public class AuthManager : MonoBehaviour
         // TODO: Implementasi login ke Supabase
         playerName = username;
         isOnlineMode = true;
+        isLoggedIn = true;
         Debug.Log($"<color=cyan>Login Online sebagai: {username}</color>");
         return Task.CompletedTask;
     }
@@ -33,6 +35,7 @@ public class AuthManager : MonoBehaviour
     {
         playerName = username;
         isOnlineMode = false;
+        isLoggedIn = true;
         Debug.Log($"<color=yellow>Mode Offline untuk: {username}</color>");
     }
 }

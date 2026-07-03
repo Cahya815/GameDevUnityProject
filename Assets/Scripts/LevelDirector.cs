@@ -29,7 +29,7 @@ public class LevelDirector : MonoBehaviour
 
     void Update()
     {
-        if (TutorialManager.isTutorialActive) return; // Api nggak bakal spawn
+        if (AuthManager.instance == null || !AuthManager.instance.isLoggedIn || !TutorialManager.isTutorialCompleted) return;
         
         // Jeda persiapan 10 detik setelah login/tutorial selesai
         if (!hasFinishedLoginGrace)

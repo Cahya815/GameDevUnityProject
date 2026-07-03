@@ -19,7 +19,7 @@ public class TutorialManager : MonoBehaviour
     public GameObject modeSelectionUI;
     
     public int step = 0;
-    private bool tutorialCompleted = false;
+    public static bool isTutorialCompleted = false;
 
     void Start()
     {
@@ -29,7 +29,7 @@ public class TutorialManager : MonoBehaviour
 
     public void StartTutorial()
     {
-        if (tutorialCompleted) return;
+        if (isTutorialCompleted) return;
         
         isTutorialActive = true;
         ShowStep();
@@ -73,7 +73,7 @@ public class TutorialManager : MonoBehaviour
         tutorialText.text = "";
         nextButton.gameObject.SetActive(false);
         step = 0;
-        tutorialCompleted = true;
+        isTutorialCompleted = true;
 
         // Simpan bahwa tutorial sudah selesai
         PlayerPrefs.SetInt("TutorialCompleted", 1);
