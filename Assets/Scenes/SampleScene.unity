@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 34812805}
   - component: {fileID: 34812804}
   - component: {fileID: 34812803}
+  - component: {fileID: 34812806}
   m_Layer: 6
   m_Name: Plane (3)
   m_TagString: Untagged
@@ -401,6 +402,26 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 34812801}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &34812806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34812801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 1
+  m_Area: 4
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &40197627
 GameObject:
   m_ObjectHideFlags: 0
@@ -7231,7 +7252,7 @@ Transform:
   m_GameObject: {fileID: 1781828411}
   serializedVersion: 2
   m_LocalRotation: {x: -0.27781588, y: -0.36497167, z: 0.1150751, w: 0.8811196}
-  m_LocalPosition: {x: -3.849164, y: -2.7618103, z: -1.2311137}
+  m_LocalPosition: {x: -5.84, y: -3.9, z: -2.85}
   m_LocalScale: {x: 3.5, y: 1.86, z: 4.68}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8376,9 +8397,9 @@ SceneRoots:
   - {fileID: 963194228}
   - {fileID: 705507995}
   - {fileID: 1063234840}
+  - {fileID: 1191047114}
   - {fileID: 603175595}
   - {fileID: 142701077}
   - {fileID: 59525204}
   - {fileID: 69716214}
-  - {fileID: 1191047114}
   - {fileID: 862225796}

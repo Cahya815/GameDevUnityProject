@@ -137,11 +137,6 @@ public class FirefighterCrew : MonoBehaviour
                 parentTruck.currentWater = 0f;
             }
         }
-        else if (targetFire.currentStatus == HouseStatus.AdaUlar)
-        {
-            // Tidak butuh air untuk menangkap hewan
-            targetFire.HandleAnimalRescue(extinguishPower);
-        }
     }
 
     private void HandleReturningToTruck()

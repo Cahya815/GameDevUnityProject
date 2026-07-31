@@ -153,8 +153,6 @@ public class UnitIdentity : MonoBehaviour
                     }
                 }
                 targetObject.Extinguish(power);
-            } else if (targetObject.currentStatus == HouseStatus.AdaUlar) {
-                targetObject.HandleAnimalRescue(power);
             }
         }
         else if (jenisUnit == UnitType.DisasterControl && targetObject.currentStatus == HouseStatus.Puing) {

@@ -70,25 +70,7 @@ public class LevelDirector : MonoBehaviour
         if (safeHouses.Length > 0)
         {
             Flammable chosenHouse = safeHouses[Random.Range(0, safeHouses.Length)];
-            
-            // Randomize the emergency type: 60% Fire, 40% Snake
-            // Pohon (isTree) hanya bisa terbakar (tidak ada hewan)
-            if (chosenHouse.isTree)
-            {
-                chosenHouse.SetToTerbakar();
-            }
-            else
-            {
-                float rand = Random.value;
-                if (rand < 0.6f)
-                {
-                    chosenHouse.SetToTerbakar();
-                }
-                else
-                {
-                    chosenHouse.SetToAdaUlar();
-                }
-            }
+            chosenHouse.SetToTerbakar();
         }
     }
 }

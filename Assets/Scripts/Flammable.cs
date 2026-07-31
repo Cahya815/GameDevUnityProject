@@ -32,12 +32,9 @@ public class Flammable : MonoBehaviour
     public GameObject meshNormal;
     public GameObject meshPuing; // Untuk Pohon, ini merepresentasikan "Pohon Gosong"
 
-    [Header("Animal Emergency Visuals")]
-    public GameObject snakeVisual;
-
     public bool IsActiveFirefighterEmergency()
     {
-        return currentStatus == HouseStatus.Terbakar || currentStatus == HouseStatus.AdaUlar;
+        return currentStatus == HouseStatus.Terbakar;
     }
 
     // ponytail: central gate — login AND tutorial must be done before fire logic runs
@@ -47,7 +44,6 @@ public class Flammable : MonoBehaviour
     }
 
     void Start() {
-        EnsureAnimalVisuals();
         // Konfigurasi dinamis antara Rumah vs Pohon demi balancing game
         if (isTree) {
             burnOutTimer = 15f;           // Pohon lebih rentan dan cepat gosong
@@ -174,74 +170,10 @@ public class Flammable : MonoBehaviour
         UpdateVisuals();
     }
     
-    private void EnsureAnimalVisuals()
-    {
-        if (snakeVisual == null)
-        {
-            Transform child = transform.Find("SnakeVisual");
-            if (child != null)
-            {
-                snakeVisual = child.gameObject;
-            }
-            else
-            {
-                GameObject placeholder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                placeholder.name = "SnakeVisual";
-                placeholder.transform.SetParent(this.transform);
-                placeholder.transform.localPosition = new Vector3(-0.8f, 0.5f, -0.8f);
-                placeholder.transform.localScale = new Vector3(0.2f, 0.4f, 0.2f);
-                var renderer = placeholder.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.material.color = Color.green;
-                }
-                var col = placeholder.GetComponent<Collider>();
-                if (col != null) Destroy(col);
-                
-                snakeVisual = placeholder;
-                snakeVisual.SetActive(false);
-            }
-        }
-    }
-
-    public void SetToAdaUlar() {
-        if (!IsFlammableAllowed()) return; 
-        if (isTree) {
-            Debug.LogWarning($"[Flammable] SetToAdaUlar dipanggil pada pohon ({gameObject.name}), dialihkan ke SetToTerbakar.");
-            SetToTerbakar();
-            return;
-        }
-
-        currentStatus = HouseStatus.AdaUlar;
-        fireHealth = 40f; 
-        UpdateVisuals();
-        Debug.Log($"<color=green>Warga melaporkan adanya ULAR di {gameObject.name}! Damkar harap segera mengamankan.</color>");
-    }
-
-    public void HandleAnimalRescue(float p) {
-        if (!IsFlammableAllowed()) return; 
-
-        if (currentStatus == HouseStatus.AdaUlar) {
-            fireHealth -= p * Time.deltaTime;
-            if (fireHealth <= 0) {
-                float reward = 60f;
-                
-                SetToAman();
-                Debug.Log("<color=green>Penyelamatan Selesai! Ular berhasil diamankan.</color>");
-                
-                if (EconomyManager.instance != null) {
-                    EconomyManager.instance.AddMoney(reward);
-                    EconomyManager.instance.OnMissionComplete(1, 0); 
-                }
-            }
-        }
-    }
-
     public void UpdateVisuals() {
         if (fireEffect != null) fireEffect.SetActive(false);
         if (meshNormal != null) meshNormal.SetActive(false);
         if (meshPuing != null) meshPuing.SetActive(false);
-        if (snakeVisual != null) snakeVisual.SetActive(false);
 
         if (!IsFlammableAllowed()) {
             if (meshNormal != null) meshNormal.SetActive(true);
@@ -260,11 +192,6 @@ public class Flammable : MonoBehaviour
 
             case HouseStatus.Puing:
                 if (meshPuing != null) meshPuing.SetActive(true); // Pohon Gosong atau Puing Rumah
-                break;
-
-            case HouseStatus.AdaUlar:
-                if (meshNormal != null) meshNormal.SetActive(true);
-                if (snakeVisual != null) snakeVisual.SetActive(true);
                 break;
         }
     }
