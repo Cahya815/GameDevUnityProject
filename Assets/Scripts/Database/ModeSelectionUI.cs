@@ -4,9 +4,15 @@ using UnityEngine.SceneManagement;
 
 public class ModeSelectionUI : MonoBehaviour
 {
+    public static ModeSelectionUI instance;
     public TMP_InputField playerNameInput;
     public GameObject loginPanel;
     public GameObject modePanel;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     private void Start()
 {
@@ -36,6 +42,12 @@ public void ShowModeSelection()
 
     public void OnOnlineModeClicked()
     {
+        TryStartOnlineLogin();
+    }
+
+    // Menyiapkan login online: buka browser Google OAuth, kelanjutan menunggu deep link
+    private void TryStartOnlineLogin()
+    {
         string name = playerNameInput.text;
         if (string.IsNullOrEmpty(name))
         {
@@ -43,9 +55,14 @@ public void ShowModeSelection()
             return;
         }
 
-        var _ = AuthManager.instance.LoginOnline(name, "password");
+        AuthManager.instance.LoginOnline(name, null);
+    }
+
+    // Dipanggil AuthManager setelah token OAuth diterima via deep link
+    public void FinishOnlineLogin()
+    {
         GameDataManager.instance.InitializeDataHandler();
-        
+
         // Mulai tutorial setelah login
         TutorialManager.instance.StartTutorial();
 
@@ -75,23 +92,9 @@ public void ShowModeSelection()
     
 }
 
-    public async void OnLoginClicked()
+    public void OnLoginClicked()
     {
-        string name = playerNameInput.text;
-        if (string.IsNullOrEmpty(name))
-        {
-            Debug.LogWarning("Username tidak boleh kosong!");
-            return;
-        }
-
-        await AuthManager.instance.LoginOnline(name, "password");
-        GameDataManager.instance.InitializeDataHandler();
-        
-        // Mulai tutorial setelah login
-        TutorialManager.instance.StartTutorial();
-        
-        modePanel.SetActive(false);
-        loginPanel.SetActive(false);
+        TryStartOnlineLogin();
     }
 
     public void OnBackClicked()

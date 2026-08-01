@@ -23,12 +23,30 @@ public class AuthManager : MonoBehaviour
 
     public Task LoginOnline(string username, string password)
     {
-        // TODO: Implementasi login ke Supabase
         playerName = username;
+        isOnlineMode = false; // belum terverifikasi — menunggu balikan Google via deep link
+        isLoggedIn = false;
+        Debug.Log($"<color=cyan>Membuka browser untuk login Google sebagai: {username}</color>");
+
+        if (DeepLinkManager.instance == null)
+            Debug.LogError("DeepLinkManager tidak ditemukan di scene! Tambahkan ke GameObject scene menu.");
+        else
+            DeepLinkManager.instance.StartGoogleOAuth();
+
+        return Task.CompletedTask;
+    }
+
+    // Dipanggil DeepLinkManager setelah token OAuth diterima
+    public void CompleteOnlineLogin()
+    {
+        if (string.IsNullOrEmpty(playerName))
+            playerName = "PemainGoogle"; // cold start via deep link, nama belum dipilih
         isOnlineMode = true;
         isLoggedIn = true;
-        Debug.Log($"<color=cyan>Login Online sebagai: {username}</color>");
-        return Task.CompletedTask;
+        Debug.Log($"<color=cyan>Login Online sukses sebagai: {playerName}</color>");
+
+        if (ModeSelectionUI.instance != null)
+            ModeSelectionUI.instance.FinishOnlineLogin();
     }
 
     public void SelectOfflineMode(string username)
