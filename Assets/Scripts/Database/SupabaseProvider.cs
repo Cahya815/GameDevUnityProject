@@ -22,7 +22,9 @@ public class SupabaseProvider : IGameDataHandler
             
             request.SetRequestHeader("Content-Type", "application/json");
             request.SetRequestHeader("apikey", apiKey);
-            request.SetRequestHeader("Authorization", "Bearer " + apiKey);
+            // Pakai token user dari login Google; fallback ke anon key kalau belum login
+            string token = PlayerPrefs.GetString("access_token", "");
+            request.SetRequestHeader("Authorization", "Bearer " + (string.IsNullOrEmpty(token) ? apiKey : token));
 
             var operation = request.SendWebRequest();
             while (!operation.isDone) await Task.Yield();

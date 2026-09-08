@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # ─── FLOCI (AWS Emulator Local) ────────────────────────────────────────────
+  floci:
+    image: floci/floci:latest
+    container_name: floci-aws
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - SERVICES=s3,dynamodb,sqs
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - game-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ─── API Service (Express Backend) ────────────────────────────────────────
+  api:
+    build:
+      context: .
+      target: development  # Use 'production' for prod builds
+    container_name: game-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      floci:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      # Supabase credentials (loaded from .env)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      # AWS/FLOCI credentials for local development
+      - AWS_ENDPOINT_URL=http://floci:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      # Mount source code for hot-reload in dev mode
+      - ./src:/app/src:ro
+      # Exclude node_modules from volume (use container's version)
+      - /app/node_modules
+    networks:
+      - game-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+networks:
+  game-network:
+    driver: bridge

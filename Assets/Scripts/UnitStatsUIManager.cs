@@ -42,6 +42,13 @@ public class UnitStatsUIManager : MonoBehaviour
         {
             panelObject.SetActive(false);
         }
+
+        // Register button listeners
+        if (repairButton != null)
+            repairButton.onClick.AddListener(OnRepairClicked);
+
+        if (trainButton != null)
+            trainButton.onClick.AddListener(OnTrainClicked);
     }
 
     void Update()
@@ -202,5 +209,15 @@ public class UnitStatsUIManager : MonoBehaviour
         {
             UnitManager.instance.selectedUnit.StartTraining();
         }
+    }
+
+    private void OnDestroy()
+    {
+        // Clean up button listeners to prevent memory leaks
+        if (repairButton != null)
+            repairButton.onClick.RemoveListener(OnRepairClicked);
+
+        if (trainButton != null)
+            trainButton.onClick.RemoveListener(OnTrainClicked);
     }
 }
