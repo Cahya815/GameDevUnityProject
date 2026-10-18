@@ -56,49 +56,41 @@ Proyek ini dirancang sebagai arsitektur **Full-Stack Game-Cloud Integration**:
 
 ## 3. Cara Menjalankan Proyek (Quick Start)
 
-### A. Menjalankan Backend (Pilih Salah Satu)
+### A. Menjalankan Backend API
 
-#### Opsi 1: Menggunakan Docker Compose (Direkomendasikan untuk Game)
-Buka terminal di folder backend:
-```powershell
-cd "d:\AREAS\3D\game\GamePemadam\Isometric\My project\Assets\Scripts\Database\backend"
+Buka terminal dan masuk ke direktori backend:
+```bash
+cd Assets/Scripts/Database/backend
+```
+
+Pilih salah satu metode yang sesuai dengan lingkungan kerja Anda:
+
+#### Opsi 1: Menggunakan Docker Compose (Direkomendasikan)
+Pastikan Docker Desktop aktif, lalu jalankan:
+```bash
 docker compose up -d --build
 ```
-* Backend aktif di dua pintu sekaligus:
-  * **Port 3000:** Khusus untuk koneksi game Unity.
-  * **Port 8080:** Standar Google Cloud Run.
-* Tes kesehatan: `curl http://localhost:3000/health` (menghasilkan `{"status":"ok"}`).
+* **Port yang Dibuka:**
+  * `3000`: Digunakan oleh client game Unity.
+  * `8080`: Standar environment Google Cloud Run.
+* **Verifikasi:** Buka browser atau jalankan `curl http://localhost:3000/health` (menghasilkan `{"status":"ok"}`).
 
-#### Opsi 2: Menggunakan Simulator Cloud Run (Floci GCP)
-Pastikan Docker Desktop aktif, lalu:
-```powershell
-floci gcp start
-```
-* Deploy service game ke Floci GCP:
-  ```powershell
-  curl.exe -s -X POST "http://localhost:4588/v2/projects/floci-local/locations/us-central1/services?serviceId=game-api" `
-    -H "Content-Type: application/json" `
-    -d '{\"template\":{\"containers\":[{\"image\":\"backend-api:latest\",\"ports\":[{\"containerPort\":8080}]}]}}'
-  ```
-* Buka Web Console Floci UI di browser: `http://localhost:4500/console/gcp`.
-
-#### Opsi 3: Menjalankan Native Windows (Tanpa Docker)
-```powershell
-cd "d:\AREAS\3D\game\GamePemadam\Isometric\My project\Assets\Scripts\Database\backend"
+#### Opsi 2: Menjalankan Native (Tanpa Docker)
+Jika ingin menjalankan langsung menggunakan Node.js di komputer lokal:
+```bash
 npm install
 npm run dev
 ```
-* Backend aktif langsung di `http://localhost:3000`.
+* Backend akan aktif langsung di `http://localhost:3000`.
 
 ---
 
 ### B. Menjalankan Game di Unity
 
-1. Buka folder root `My project` di **Unity Hub / Unity Editor**.
-2. Buka scene game utama.
-3. Pastikan GameObject **`EC2Client`** di Hierarchy memiliki `apiBaseUrl`:
-   * Untuk Docker lokal: `http://localhost:3000`
-   * Untuk Floci Cloud Run: `http://localhost:<PORT_CLOUDRUN>`
+1. Buka folder `My project` menggunakan **Unity Hub** (versi Unity 2022 LTS / yang setara).
+2. Buka scene utama game.
+3. Pastikan GameObject **`EC2Client`** pada Hierarchy terarah ke endpoint backend:
+   * Default: `http://localhost:3000`
 4. Tekan tombol **Play (▶️)** di Unity.
 5. Alur Onboarding Game:
    ```text
@@ -217,7 +209,26 @@ Jika sudah siap merilis backend ke Google Cloud Platform resmi:
 
 ---
 
-## 9. Struktur Folder Utama
+## 9. 🔬 Local Cloud Emulation & Research Lab (Floci GCP)
+
+Sebagai bagian dari riset arsitektur cloud serverless tanpa biaya kartu kredit, proyek ini dilengkapi konfigurasi pengujian menggunakan emulator **Floci GCP**:
+
+1. **Menjalankan Emulator GCP:**
+   ```bash
+   floci gcp start
+   ```
+2. **Mendaftarkan Service ke Emulator Cloud Run:**
+   ```bash
+   curl -X POST "http://localhost:4588/v2/projects/floci-local/locations/us-central1/services?serviceId=game-api" \
+     -H "Content-Type: application/json" \
+     -d '{"template":{"containers":[{"image":"backend-api:latest","ports":[{"containerPort":8080}]}]}}'
+   ```
+3. **Observabilitas via Floci UI:**
+   Buka dashboard web `http://localhost:4500/console/gcp` untuk memantau status service `SUCCEEDED` dan manajemen resource Cloud Run secara visual.
+
+---
+
+## 10. Struktur Folder Utama
 
 ```text
 My project/
