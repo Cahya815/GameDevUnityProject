@@ -1,156 +1,234 @@
-# 🚒 Game Pemadam Kebakaran (Isometric 3D Simulation)
+# 🚒 Game Telemetry, Mission Save & Leaderboard Service (Cloud-Native REST API)
 
-> **Status Proyek:** Beta / Active Development  
-> **Arsitektur:** Unity (C#) Client + Node.js (Express) REST API + Supabase (PostgreSQL) + Docker & Google Cloud Run (Floci Emulator).
+![Node.js](https://img.shields.io/badge/Node.js-Express_4-339933?style=flat&logo=nodedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?style=flat&logo=docker&logoColor=white)
+![Google Cloud Run](https://img.shields.io/badge/Google_Cloud-Cloud_Run-4285F4?style=flat&logo=googlecloud&logoColor=white)
+![JWT](https://img.shields.io/badge/Security-Stateless_JWT-000000?style=flat&logo=jsonwebtokens&logoColor=white)
 
----
-
-## 1. Ringkasan Proyek
-
-**Game Pemadam Kebakaran** adalah game simulasi strategi & manajemen bencana berperspektif isometrik (3D). Pemain bertindak sebagai **Komandan Markas (Headquarters / HQ)** yang bertanggung jawab atas penanggulangan bencana kota, pemadaman kebakaran rumah warga & hutan, pembersihan puing reruntuhan, pemeliharaan armada kendaraan, serta pengelolaan keuangan kota.
-
-Proyek ini dirancang sebagai arsitektur **Full-Stack Game-Cloud Integration**:
-* **Frontend:** Unity 3D Engine (C#).
-* **Backend:** Node.js (Express.js REST API).
-* **Database:** Supabase Cloud (PostgreSQL).
-* **Infrastruktur & Cloud:** Docker multi-stage, Google Cloud Run architecture, serta emulator cloud lokal **Floci (GCP & AWS)**.
+> **Project Status:** Production-Ready / Active Development  
+> **Architecture:** Node.js (Express) REST API + Supabase (PostgreSQL) + Docker Multi-Stage + Google Cloud Run (with Local Floci GCP Emulation) + Unity 3D Client (C#).
 
 ---
 
-## 2. Tech Stack & Arsitektur Sistem
+## 1. Executive Summary
 
-| Komponen | Teknologi | Keterangan |
+A production-ready, containerized **Backend REST API service** engineered for real-time game telemetry, stateless player authentication, mission state persistence, and global leaderboard aggregation. 
+
+Built as the cloud backbone for an **Isometric 3D Disaster & Firefighting Simulation Game**, this service handles concurrent HTTP REST payloads from Unity C# clients, enforces strict authentication and payload validation, and is architected for zero-downtime serverless deployment on **Google Cloud Run**.
+
+### 🔐 Security & Architectural Highlights
+1. **Stateless JWT Authentication:** Protected routes (`/auth/me`, `POST /v1/saves`) enforce Bearer Token verification middleware to prevent unauthorized telemetry injection or score spoofing.
+2. **Cryptographic Data Integrity:** Passwords are salted and hashed via `bcrypt` (enforcing a minimum 8-character policy) alongside strict request payload validation before database transactions.
+3. **Multi-Stage Containerization:** Configured with Docker & Docker Compose supporting standardized environment injection (`PORT`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and dual port mapping (`3000` for local client debugging, `8080` for GCP Cloud Run runtime).
+4. **Container Orchestration Readiness:** Exposes a lightweight `/health` probe endpoint reporting server uptime and timestamps for Kubernetes / Cloud Run liveness and readiness checks.
+5. **Cost-Zero Cloud Emulation Lab:** Integrated with **Floci GCP Emulator** (`floci-gcp` & `floci-ui`) to simulate serverless Cloud Run deployments and container lifecycle orchestration locally.
+
+---
+
+## 2. System Architecture & Data Flow
+
+| Layer | Technology | Implementation Details |
 |---|---|---|
-| **Game Engine** | Unity (C#) | NavMesh Navigation, Isometric Camera, Event State Machine |
-| **Backend API** | Node.js (Express 4) | REST API, JWT Authentication, bcrypt hashing, CORS |
-| **Database** | Supabase (PostgreSQL) | Tabel `users` (auth) & `game_logs` (riwayat misi & leaderboard) |
-| **Containerization** | Docker & Docker Compose | Multi-stage build (`development` & `production`) |
-| **Cloud Target** | Google Cloud Run (GCP) | Serverless container deployment (Port 8080) |
-| **Cloud Emulator** | Floci (`floci-gcp` & `floci-ui`) | Simulasi lokal Cloud Run (Port 4588 & Web UI Port 4500) |
+| **Backend API** | Node.js (Express 4) | RESTful routing, JWT Bearer Auth middleware, `bcrypt` hashing, CORS policy |
+| **Database** | Supabase (PostgreSQL) | Managed PostgreSQL storing `users` (credentials/auth) & `game_logs` (telemetry) |
+| **Containerization** | Docker & Compose | Multi-stage builds (`development` & `production` targets) |
+| **Cloud Target** | Google Cloud Run (GCP) | Serverless container execution listening on standardized port `8080` |
+| **Cloud Emulator** | Floci (`floci-gcp`) | Local GCP Cloud Run control plane simulation (Port `4588` & UI Port `4500`) |
+| **Client Consumer** | Unity Engine (C#) | Custom `EC2Client.cs` & `AuthManager.cs` consuming REST JSON endpoints |
 
-### Diagram Alur Data (Data Flow):
+### Architecture Diagram
 
 ```text
-[ Pemain di Game Unity (C#) ]
+[ Unity 3D Game Client (C#) ]
        │
-       ▼ (HTTP REST JSON via EC2Client.cs)
+       ▼ (HTTPS REST JSON via EC2Client.cs / Bearer JWT)
 ┌────────────────────────────────────────────────────────┐
-│             Docker / Google Cloud Run                  │
-│             (Node.js Express Server)                   │
+│           Docker Container / Google Cloud Run          │
+│              (Node.js Express REST Server)             │
 │                                                        │
-│   ├── /auth/register & /auth/login (JWT & bcrypt)      │
-│   ├── /v1/saves (Penyimpanan Misi Pemadam)             │
-│   └── /v1/leaderboard/top (Papan Peringkat Global)     │
+│  ├── GET  /health              (Liveness Probe)        │
+│  ├── POST /auth/register       (bcrypt Password Hash)  │
+│  ├── POST /auth/login          (Stateless JWT Issue)   │
+│  ├── GET  /auth/me             (JWT Auth Middleware)   │
+│  ├── POST /v1/saves            (Protected Telemetry)   │
+│  └── GET  /v1/leaderboard/top  (Query Aggregation)     │
 └──────────────────────────┬─────────────────────────────┘
                            │
-                           ▼ (Supabase JS Client / Service Role)
+                           ▼ (Supabase JS Client / Service Role Key)
 ┌────────────────────────────────────────────────────────┐
 │             Supabase Cloud (PostgreSQL)                │
 │                                                        │
-│   ├── Tabel `users`      (Data Akun & Hash Password)   │
-│   └── Tabel `game_logs`  (Skor Api Padam & Durasi)     │
+│  ├── Table: `users`      (UUID, Email, Password Hash)  │
+│  └── Table: `game_logs`  (Mission Scores & Duration)   │
 └────────────────────────────────────────────────────────┘
+
 ```
 
 ---
 
-## 3. Cara Menjalankan Proyek (Quick Start)
+## 3. REST API Reference & Contract Specifications
 
-### A. Menjalankan Backend API
+**Base URL:** `http://localhost:3000` (Local Dev) or `https://<service-hash>.a.run.app` (GCP Cloud Run)
 
-Buka terminal dan masuk ke direktori backend:
-```bash
-cd Assets/Scripts/Database/backend
+### Endpoint Summary
+
+| Method | Endpoint | Auth Required | Query / Payload | Description |
+| --- | --- | --- | --- | --- |
+| `GET` | `/health` | Public | None | Container readiness/liveness probe & server uptime |
+| `POST` | `/auth/register` | Public | `{"email", "username", "password"}` | Register new player account (password min. 8 chars) |
+| `POST` | `/auth/login` | Public | `{"email", "password"}` | Authenticate credentials & issue signed JWT |
+| `GET` | `/auth/me` | **Bearer Token** | None | Retrieve authenticated player profile metadata |
+| `POST` | `/v1/saves` | **Bearer Token** | `{"playerName", "firesExtinguished", "duration"}` | Commit completed mission telemetry to database |
+| `GET` | `/v1/saves` | Public | `?limit=100` | Fetch chronological mission completion logs |
+| `GET` | `/v1/leaderboard/top` | Public | `?limit=10` | Retrieve top-performing players sorted by score |
+
+---
+
+### Detailed Endpoint Payloads
+
+#### 1. Container Health Check
+
+* **Endpoint:** `GET /health`
+* **Auth:** None
+* **Response (`200 OK`):**
+
+```json
+{
+  "status": "ok",
+  "uptime": 120.45,
+  "timestamp": "2026-10-18T08:00:00.000Z"
+}
+
 ```
 
-Pilih salah satu metode yang sesuai dengan lingkungan kerja Anda:
+#### 2. Player Registration
 
-#### Opsi 1: Menggunakan Docker Compose (Direkomendasikan)
-Pastikan Docker Desktop aktif, lalu jalankan:
-```bash
-docker compose up -d --build
+* **Endpoint:** `POST /auth/register`
+* **Auth:** None
+* **Request Body:**
+
+```json
+{
+  "email": "player@example.com",
+  "username": "firefighter_one",
+  "password": "securepassword123"
+}
+
 ```
-* **Port yang Dibuka:**
-  * `3000`: Digunakan oleh client game Unity.
-  * `8080`: Standar environment Google Cloud Run.
-* **Verifikasi:** Buka browser atau jalankan `curl http://localhost:3000/health` (menghasilkan `{"status":"ok"}`).
 
-#### Opsi 2: Menjalankan Native (Tanpa Docker)
-Jika ingin menjalankan langsung menggunakan Node.js di komputer lokal:
-```bash
-npm install
-npm run dev
+* **Response (`201 Created`):**
+
+```json
+{
+  "message": "User registered successfully",
+  "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+
 ```
-* Backend akan aktif langsung di `http://localhost:3000`.
+
+#### 3. Player Authentication (Login)
+
+* **Endpoint:** `POST /auth/login`
+* **Auth:** None
+* **Request Body:**
+
+```json
+{
+  "email": "player@example.com",
+  "password": "securepassword123"
+}
+
+```
+
+* **Response (`200 OK`):**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "username": "firefighter_one",
+    "email": "player@example.com"
+  }
+}
+
+```
+
+#### 4. Retrieve Authenticated Profile
+
+* **Endpoint:** `GET /auth/me`
+* **Auth:** Bearer Token (`Authorization: Bearer <JWT_TOKEN>`)
+* **Response (`200 OK`):**
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "username": "firefighter_one",
+  "email": "player@example.com",
+  "last_login": "2026-10-18T08:15:30.000Z"
+}
+
+```
+
+#### 5. Save Game Mission Telemetry
+
+* **Endpoint:** `POST /v1/saves`
+* **Auth:** Bearer Token (`Authorization: Bearer <JWT_TOKEN>`)
+* **Request Body:**
+
+```json
+{
+  "playerName": "firefighter_one",
+  "firesExtinguished": 42,
+  "duration": 360
+}
+
+```
+
+* **Response (`201 Created`):**
+
+```json
+{
+  "message": "Mission log saved successfully",
+  "data": {
+    "id": 104,
+    "player_name": "firefighter_one",
+    "fires_extinguished": 42,
+    "duration": 360,
+    "created_at": "2026-10-18T08:21:00.000Z"
+  }
+}
+
+```
+
+#### 6. Global Leaderboard & Mission History
+
+* **Endpoints:** `GET /v1/leaderboard/top?limit=10` | `GET /v1/saves?limit=100`
+* **Auth:** None
+* **Response (`200 OK`):**
+
+```json
+[
+  {
+    "id": 104,
+    "player_name": "firefighter_one",
+    "fires_extinguished": 42,
+    "duration": 360,
+    "created_at": "2026-10-18T08:21:00.000Z"
+  }
+]
+
+```
 
 ---
 
-### B. Menjalankan Game di Unity
+## 4. Database Schema (PostgreSQL / Supabase)
 
-1. Buka folder `My project` menggunakan **Unity Hub** (versi Unity 2022 LTS / yang setara).
-2. Buka scene utama game.
-3. Pastikan GameObject **`EC2Client`** pada Hierarchy terarah ke endpoint backend:
-   * Default: `http://localhost:3000`
-4. Tekan tombol **Play (▶️)** di Unity.
-5. Alur Onboarding Game:
-   ```text
-   Login / Register Panel  ──►  Tutorial HQ Onboarding  ──►  Gameplay Darurat Aktif
-   ```
+### Table: `public.users`
 
----
+Stores player identity, unique constraints, and salted `bcrypt` password hashes.
 
-## 4. Mekanik Inti Gameplay
-
-### A. Armada Pemadam (`FireTruck.cs` & `FirefighterCrew.cs`)
-* **Tangki Air:** Truk memiliki kapasitas air (`currentWater` / `maxWater`). Air berkurang saat menyemprot api dan terisi ulang secara otomatis saat berada di dekat **Markas HQ** atau **Hydrant**.
-* **Deploy Kru Personel:** Truk parkir di jalan terdekat dari target kebakaran, lalu menurunkan kru personel damkar yang berjalan kaki menuju titik api via NavMesh.
-* Setelah api padam atau air habis, kru otomatis kembali masuk ke dalam truk.
-
-### B. Penanggulangan Bencana & Puing (`DisasterUnit.cs`)
-* Kendaraan alat berat khusus untuk membersihkan puing reruntuhan rumah pasca kebakaran.
-* Memberikan reward uang saat berhasil membersihkan puing rumah.
-* **Aturan Khusus:** Tidak membersihkan pohon gosong, karena pohon di hutan memiliki mekanik regenerasi mandiri.
-
-### C. Karakteristik Api & Lingkungan (`Flammable.cs`)
-* Objek memiliki 3 status: `HouseStatus.Aman`, `Terbakar`, `Puing`.
-* **Rumah Warga:** Ketahanan lebih tinggi, memadamkan rumah memberi reward ekonomi besar (+$50). Jika hancur menjadi puing, kas kota rugi (-$150).
-* **Pohon Hutan:** Mudah terbakar & merembet lebih cepat, namun memiliki fitur **Regenerasi Otomatis** kembali hijau setelah beberapa saat menjadi pohon gosong.
-* **Penyebaran Api:** Api merembet ke objek di sekitarnya (`Physics.OverlapSphere`) dengan variasi interval acak dinamis (`spreadVariance`).
-
-### D. Markas (HQ), Pelatihan Kru, & Perawatan Mesin
-* **Markas HQ (`HQController.cs`):** Dapat di-upgrade dari Level 1 hingga Level 4.
-  * **HQ Level 1:** Pembelian unit pemadam dasar.
-  * **HQ Level 2:** Membuka fitur Latihan Kru & membuka pembelian Disaster Unit ($510).
-  * **HQ Level 3:** Membuka fitur Perawatan / Servis Mesin armada.
-  * **HQ Level 4:** Pelatihan kru tanpa batas level.
-* **Kondisi Mesin (`engineCondition`):** Mesin kendaraan mengalami keausan (`engineDegradationRate`) saat beroperasi. Jika menyentuh 0%, armada **mogok** dan wajib diservis di HQ.
-* **Latihan Kru (`crewLevel`):** Meningkatkan kekuatan semprotan (`power`) dan kecepatan gerak unit.
-
-### E. Manajemen Ekonomi & Level Director
-* **Ekonomi Kota (`EconomyManager.cs`):** Saldo kas pemain bertambah dari bonus pemadaman api & pembersihan puing, serta berkurang untuk biaya beli unit ($200), servis mesin, latihan kru, dan penalti rumah hancur.
-* **Level Director (`LevelDirector.cs`):** Mengatur frekuensi kemunculan api secara otomatis berdasarkan tingkat level kesulitan setelah masa tenggang (*grace period*) tutorial selesai.
-
----
-
-## 5. Dokumentasi REST API Backend
-
-Base URL: `http://localhost:3000` (atau port Cloud Run)
-
-| Method | Endpoint | Auth | Request Body | Deskripsi |
-|---|---|---|---|---|
-| `GET` | `/health` | Public | None | Health check status server |
-| `POST` | `/auth/register` | Public | `{"email", "username", "password"}` | Pendaftaran akun pemain baru (Password min. 8 karakter) |
-| `POST` | `/auth/login` | Public | `{"email", "password"}` | Login akun pemain & mengembalikan JWT Token |
-| `GET` | `/auth/me` | Bearer Token | None | Mengambil informasi profil akun yang sedang login |
-| `POST` | `/v1/saves` | Bearer Token | `{"playerName", "firesExtinguished", "duration"}` | Menyimpan hasil misi permainan |
-| `GET` | `/v1/saves` | Public | Query param: `?limit=100` | Mengambil seluruh log riwayat misi |
-| `GET` | `/v1/leaderboard/top` | Public | Query param: `?limit=10` | Mengambil papan peringkat pemain terbaik |
-
----
-
-## 6. Spesifikasi Skema Database (Supabase PostgreSQL)
-
-### Tabel `users`
 ```sql
 CREATE TABLE public.users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -160,9 +238,13 @@ CREATE TABLE public.users (
     password_hash TEXT NOT NULL,
     last_login TIMESTAMP WITH TIME ZONE
 );
+
 ```
 
-### Tabel `game_logs`
+### Table: `public.game_logs`
+
+Stores immutable telemetry records for completed game sessions and leaderboard aggregation.
+
 ```sql
 CREATE TABLE public.game_logs (
     id BIGSERIAL PRIMARY KEY,
@@ -171,98 +253,140 @@ CREATE TABLE public.game_logs (
     fires_extinguished INT NOT NULL DEFAULT 0,
     duration INT NOT NULL DEFAULT 0
 );
+
 ```
 
 ---
 
-## 7. Kontrol Permainan (Keyboard & Mouse)
+## 5. Infrastructure, Docker & Cloud Deployment
 
-| Tombol | Aksi |
-|---|---|
-| `1` / `2` / `3` | Memilih unit armada (Firefighter Truck / Disaster Unit) |
-| `0` | **Recall All Units:** Memerintahkan semua unit membatalkan tugas & kembali ke HQ |
-| `Esc` | Melepas seleksi unit aktif (unit tetap melanjutkan tugas otomatisnya) |
-| `Klik Kiri (HQ)` | Membuka panel upgrade & menu Markas HQ |
-| `Klik Kiri (Tanah/Objek)` | Memerintahkan unit yang dipilih bergerak atau menuju target bencana |
-| `Klik Kanan` | Alternatif navigasi pergerakan unit terpilih |
+### A. Local Container Orchestration (Docker Compose)
 
----
+Navigate to the backend service directory:
 
-## 8. Panduan Deployment ke Production (Google Cloud Run Asli)
+```bash
+cd Assets/Scripts/Database/backend
 
-Jika sudah siap merilis backend ke Google Cloud Platform resmi:
+```
 
-1. **Submit Build ke Google Artifact Registry:**
-   ```bash
-   gcloud builds submit --tag gcr.io/PROJECT_ID_KAMU/game-api
-   ```
-2. **Deploy ke Cloud Run:**
-   ```bash
-   gcloud run deploy game-api \
-     --image gcr.io/PROJECT_ID_KAMU/game-api \
-     --platform managed \
-     --region us-central1 \
-     --allow-unauthenticated \
-     --set-env-vars SUPABASE_URL=your-supabase-url,SUPABASE_SERVICE_ROLE_KEY=your-key,JWT_SECRET=your-secret
-   ```
-3. Salin URL HTTPS yang diberikan oleh Google Cloud Run (contoh: `https://game-api-xyz.a.run.app`) dan masukkan ke variabel `apiBaseUrl` di script `EC2Client.cs` Unity.
+Build and spin up the containerized service in detached mode:
 
----
+```bash
+docker compose up -d --build
 
-## 9. 🔬 Local Cloud Emulation & Research Lab (Floci GCP)
+```
 
-Sebagai bagian dari riset arsitektur cloud serverless tanpa biaya kartu kredit, proyek ini dilengkapi konfigurasi pengujian menggunakan emulator **Floci GCP**:
+* **Port Mapping:**
+* `3000`: Exposed for local Unity client development (`EC2Client.cs`).
+* `8080`: Mapped to mirror Google Cloud Run's default container ingress port.
 
-1. **Menjalankan Emulator GCP:**
-   ```bash
-   floci gcp start
-   ```
-2. **Mendaftarkan Service ke Emulator Cloud Run:**
-   ```bash
-   curl -X POST "http://localhost:4588/v2/projects/floci-local/locations/us-central1/services?serviceId=game-api" \
-     -H "Content-Type: application/json" \
-     -d '{"template":{"containers":[{"image":"backend-api:latest","ports":[{"containerPort":8080}]}]}}'
-   ```
-3. **Observabilitas via Floci UI:**
-   Buka dashboard web `http://localhost:4500/console/gcp` untuk memantau status service `SUCCEEDED` dan manajemen resource Cloud Run secara visual.
+
+* **Verify Container Readiness:**
+
+```bash
+curl http://localhost:3000/health
+# Expected output: {"status":"ok","uptime":...}
+
+```
+
+*(Alternative)* **Native Node.js Execution:**
+
+```bash
+npm install
+npm run dev
+
+```
 
 ---
 
-## 10. Struktur Folder Utama
+### B. Production Deployment (Google Cloud Run)
+
+1. **Build & Push Container Image to Google Artifact/Container Registry:**
+```bash
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/game-api
+
+```
+
+
+2. **Deploy Stateless Service to Cloud Run:**
+```bash
+gcloud run deploy game-api \
+  --image gcr.io/YOUR_PROJECT_ID/game-api \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars SUPABASE_URL=your-supabase-url,SUPABASE_SERVICE_ROLE_KEY=your-key,JWT_SECRET=your-secret
+
+```
+
+
+3. **Client Pointing:** Copy the provisioned HTTPS Cloud Run URL (e.g., `https://game-api-xyz.a.run.app`) into the `apiBaseUrl` serialized field on the `EC2Client` GameObject in Unity.
+
+---
+
+### C. 🔬 Local Serverless Emulation Lab (Floci GCP)
+
+To validate Cloud Run deployment manifests and container port bindings locally without incurring cloud billing:
+
+1. **Start the Floci GCP Control Plane Emulator:**
+```bash
+floci gcp start
+
+```
+
+
+2. **Provision the Containerized Service onto Local Cloud Run:**
+```bash
+curl -X POST "http://localhost:4588/v2/projects/floci-local/locations/us-central1/services?serviceId=game-api" \
+  -H "Content-Type: application/json" \
+  -d '{"template":{"containers":[{"image":"backend-api:latest","ports":[{"containerPort":8080}]}]}}'
+
+```
+
+
+3. **Observability & Lifecycle Monitoring:**
+Access the Floci Web Console at `http://localhost:4500/console/gcp` to inspect service health, container logs, and `SUCCEEDED` deployment states.
+
+---
+
+## 6. Client Integration Overview (Unity 3D Simulation)
+
+While the core focus of this repository's infrastructure is the backend & cloud pipeline, the API serves an active **Isometric 3D Disaster Management Game** built with Unity (C#):
+
+* **Asynchronous REST Integration (`EC2Client.cs` & `AuthManager.cs`):** Handles non-blocking HTTP requests, Bearer token injection, session persistence, and fallback state management (`GameDataManager.cs`).
+* **Dynamic Telemetry Generation:** Gameplay systems—including dynamic fire propagation (`Flammable.cs`), autonomous NavMesh agent dispatch (`FireTruck.cs`, `FirefighterCrew.cs`, `DisasterUnit.cs`), municipal budget calculation (`EconomyManager.cs`), and procedural difficulty scaling (`LevelDirector.cs`)—aggregate session metrics (`firesExtinguished` and survival `duration`) and commit them to `/v1/saves` upon mission completion.
+
+---
+
+## 7. Repository Directory Structure
 
 ```text
 My project/
 ├── Assets/
 │   ├── Scripts/
-│   │   ├── CameraFollow.cs            # Pengaturan kamera isometrik
-│   │   ├── DisasterUnit.cs            # Unit pembersih puing
-│   │   ├── EconomyManager.cs          # Kas uang & reward/penalti
-│   │   ├── FirefighterCrew.cs         # Personel pemadam jalan kaki
-│   │   ├── FireTruck.cs               # Truk pemadam & tangki air
-│   │   ├── Flammable.cs               # Objek terbakar (rumah vs pohon)
-│   │   ├── GameEnum.cs                # Enum status rumah & jenis unit
-│   │   ├── GridManager.cs             # Input mouse & pembelian unit
-│   │   ├── Hydrant.cs                 # Titik hidran isi ulang air
-│   │   ├── LevelDirector.cs           # Sutradara frekuensi bencana
-│   │   ├── UnitIdentity.cs            # Stats unit, mesin aus, & training
-│   │   ├── UnitManager.cs             # Seleksi unit (1-3, 0 recall, Esc)
-│   │   ├── UnitStatsUIManager.cs      # HUD status mesin & tangki air
-│   │   ├── Database/
-│   │   │   ├── AuthManager.cs         # Status autentikasi & sesi
-│   │   │   ├── EC2Client.cs           # HTTP Client ke backend REST API
-│   │   │   ├── GameDataManager.cs     # Provider manager (Cloud vs Local)
-│   │   │   ├── ModeSelectionUI.cs     # Form UI Login & Register
-│   │   │   └── backend/               # Source code REST API Node.js
-│   │   │       ├── Dockerfile         # Multi-stage container recipe
-│   │   │       ├── docker-compose.yml # Port mapping 3000 & 8080
-│   │   │       ├── .env               # Kredensial Supabase & JWT
-│   │   │       └── src/               # Express app, routes, auth, & db
-│   │   ├── HQ/                        # Markas komando & UI upgrade
-│   │   └── Tutorial/                  # Alur onboarding pemain pemula
-└── README.md                          # Dokumentasi utama proyek
+│   │   ├── Database/                  # 🌟 BACKEND & CLOUD INTEGRATION CORE
+│   │   │   ├── backend/               # Node.js Express REST API Service
+│   │   │   │   ├── Dockerfile         # Multi-stage container build definition
+│   │   │   │   ├── docker-compose.yml # Service orchestration & port mapping (3000/8080)
+│   │   │   │   ├── .env.example       # Environment variable template (Supabase & JWT)
+│   │   │   │   └── src/               # Express app, JWT middleware, routes, & DB client
+│   │   │   ├── AuthManager.cs         # Client-side JWT session & auth state manager
+│   │   │   ├── EC2Client.cs           # Unity HTTP REST client for backend communication
+│   │   │   ├── GameDataManager.cs     # Data provider abstraction (Cloud vs Local)
+│   │   │   └── ModeSelectionUI.cs     # Authentication UI controller (Login/Register)
+│   │   │
+│   │   ├── FireTruck.cs               # Fleet water tank & NavMesh dispatch logic
+│   │   ├── FirefighterCrew.cs         # Field personnel AI agent
+│   │   ├── DisasterUnit.cs            # Post-fire debris clearance unit
+│   │   ├── Flammable.cs               # Physics.OverlapSphere fire spread state machine
+│   │   ├── EconomyManager.cs          # City treasury, rewards & penalty system
+│   │   ├── LevelDirector.cs           # Procedural disaster pacing controller
+│   │   ├── UnitIdentity.cs            # Engine degradation & crew upgrade metrics
+│   │   ├── UnitManager.cs             # Fleet selection & global recall controller
+│   │   ├── HQ/                        # Command center upgrades (Levels 1-4)
+│   │   └── Tutorial/                  # Player onboarding state flow
+└── README.md                          # System architecture & API documentation
+
+
+
 ```
-
----
-
-*Dokumentasi ini diperbarui secara berkala sesuai perkembangan arsitektur game dan infrastruktur cloud.*
-
