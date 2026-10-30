@@ -24,9 +24,9 @@
 4. [Skema Data & Spesifikasi REST API](#4-skema-data--spesifikasi-rest-api)
    - 4.1 Skema Data User & Kredensial
    - 4.2 Endpoint REST API Akun & Avatar
-5. [Panduan Penyetingan (Setup Guide)](#5-panduan-penyetingan-setup-guide)
-   - 5.1 Opsi A: Setup Cloud Asli via Azure for Students ($100 Credit)
-   - 5.2 Opsi B: Setup Lokal Menggunakan Azurite (Emulator Resmi Microsoft)
+5. [Panduan Penyetingan & Deployment (Setup Guide)](#5-panduan-penyetingan--deployment-setup-guide)
+   - 5.1 Konfigurasi Akun Microsoft Azure Cloud ($100 Student Credit)
+   - 5.2 Menjalankan Web & Backend dalam 1 Kontainer Docker
    - 5.3 Konfigurasi Otomatis CORS & Public Blob Access Level
 6. [Rubrik Evaluasi Dosen & Prosedur Pengujian](#6-rubrik-evaluasi-dosen--prosedur-pengujian)
 
@@ -182,7 +182,7 @@ Sesuai indikator Sub-CPMK 2.1 mengenai Teorema CAP dan justifikasi basis data:
                         │                             │
                         ▼                             ▼
 ┌─────────────────────────────────────────┐  ┌─────────────────────────────────┐
-│     BACKEND EXPRESS (NODE.JS RUNTIME)   │  │   AZURE BLOB STORAGE / AZURITE  │
+│     BACKEND EXPRESS (NODE.JS RUNTIME)   │  │   AZURE BLOB STORAGE (CLOUD)    │
 │  • Routing & JWT Authentication         │  │  • Container: avatars           │
 │  • Bcrypt Password Verification         │  │  • Public Blob Level Access     │
 │  • Azure SAS Token Generator            │  │  • Permanent Public URL Render  │
@@ -330,28 +330,29 @@ Semua endpoint berikut (kecuali register/login) wajib menyertakan header `Author
 
 ---
 
-## 5. Panduan Penyetingan (Setup Guide)
+## 5. Panduan Penyetingan & Deployment (Setup Guide)
 
-### 5.1 Opsi A: Setup Cloud Asli via Azure for Students ($100 Credit)
-1. Login ke [portal.azure.com](https://portal.azure.com/) menggunakan akun GitHub Student.
+### 5.1 Konfigurasi Akun Microsoft Azure Cloud ($100 Student Credit)
+1. Login ke [portal.azure.com](https://portal.azure.com/) menggunakan akun GitHub Student Developer Pack.
 2. Buat Storage Account baru: `gamepemadamstorage`.
-3. Buka **Access Keys** ➡️ Salin **Connection String**.
-4. Isi file `.env`:
+3. Buka menu **Access Keys** ➡️ Salin **Connection String**.
+4. Masukkan ke file `.env` aplikasi:
    ```env
    AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=gamepemadamstorage;AccountKey=...;EndpointSuffix=core.windows.net"
    AZURE_CONTAINER_NAME=avatars
    ```
 
-### 5.2 Opsi B: Setup Lokal Menggunakan Azurite (Emulator Resmi Microsoft)
-1. Jalankan emulator Azurite:
-   ```powershell
-   npx azurite --silent --location c:\azurite
+### 5.2 Menjalankan Web & Backend dalam 1 Kontainer Docker
+Aplikasi web frontend dan backend Express dikemas dalam satu kontainer Docker yang siap dijalankan dan dideploy ke cloud:
+1. Build kontainer:
+   ```bash
+   docker build -t gamepemadam-portal:latest .
    ```
-2. Isi file `.env`:
-   ```env
-   AZURE_STORAGE_CONNECTION_STRING="UseDevelopmentStorage=true;"
-   AZURE_CONTAINER_NAME=avatars
+2. Jalankan kontainer:
+   ```bash
+   docker run -d -p 8080:8080 --env-file .env gamepemadam-portal:latest
    ```
+3. Buka browser: `http://localhost:8080/` (atau langsung via domain publik Azure jika kontainer dideploy ke cloud).
 
 ### 5.3 Konfigurasi Otomatis CORS & Public Blob Access Level
 Modul backend otomatis memastikan container dibuat dengan akses publik level *Blob* dan CORS terpasang otomatis saat server menyala:
