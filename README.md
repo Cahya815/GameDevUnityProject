@@ -23,6 +23,7 @@ Built as the cloud backbone for an **Isometric 3D Disaster & Firefighting Simula
 3. **Multi-Stage Containerization:** Configured with Docker & Docker Compose supporting standardized environment injection (`PORT`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and dual port mapping (`3000` for local client debugging, `8080` for GCP Cloud Run runtime).
 4. **Container Orchestration Readiness:** Exposes a lightweight `/health` probe endpoint reporting server uptime and timestamps for Kubernetes / Cloud Run liveness and readiness checks.
 5. **Cost-Zero Cloud Emulation Lab:** Integrated with **Floci GCP Emulator** (`floci-gcp` & `floci-ui`) to simulate serverless Cloud Run deployments and container lifecycle orchestration locally.
+6. **AWS Cloud-Native Stack & Web Dashboard:** Full support for AWS ECS Fargate, Amazon DynamoDB, ALB, and CloudFormation IaC for coursework (RPS_SIF25503P), equipped with an embedded Web Simulation & Leaderboard Hub on / (see [Backend & Cloud Documentation](Assets/Scripts/Database/backend/README.md)).
 
 ---
 
@@ -366,6 +367,8 @@ My project/
 │   ├── Scripts/
 │   │   ├── Database/                  # 🌟 BACKEND & CLOUD INTEGRATION CORE
 │   │   │   ├── backend/               # Node.js Express REST API Service
+│   │   │   │   ├── cloudformation/    # AWS CloudFormation IaC (VPC, ECS, DynamoDB, ALB)
+│   │   │   │   ├── docs/              # AWS Pricing Estimate & Teardown Guide
 │   │   │   │   ├── Dockerfile         # Multi-stage container build definition
 │   │   │   │   ├── docker-compose.yml # Service orchestration & port mapping (3000/8080)
 │   │   │   │   ├── .env.example       # Environment variable template (Supabase & JWT)
