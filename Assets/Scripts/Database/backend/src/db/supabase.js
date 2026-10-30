@@ -5,7 +5,7 @@ let supabase = null;
 
 /**
  * Lazy-initialize Supabase client with service role
- * Service role bypasses RLS — only called server-side by Cloud Run
+ * Service role bypasses RLS — only called server-side
  */
 function getSupabase() {
   if (!supabase) {
@@ -21,11 +21,118 @@ function getSupabase() {
 }
 
 /**
+ * Get user profile data
+ */
+async function getUserProfile(userId) {
+  const sb = getSupabase();
+  try {
+    const { data, error } = await sb
+      .from('users')
+      .select('id, email, username, avatar_url, created_at, last_login')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      // Graceful fallback if avatar_url column is not yet migrated in Supabase
+      if (error.message && error.message.includes('avatar_url')) {
+        const fallback = await sb
+          .from('users')
+          .select('id, email, username, created_at, last_login')
+          .eq('id', userId)
+          .single();
+        if (fallback.error) throw fallback.error;
+        return { ...fallback.data, avatar_url: null };
+      }
+      throw error;
+    }
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Get user with password_hash for verification
+ */
+async function getUserWithPassword(userId) {
+  const sb = getSupabase();
+  const { data, error } = await sb
+    .from('users')
+    .select('id, email, username, password_hash')
+    .eq('id', userId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Check if a username is already taken by another user
+ */
+async function isUsernameTaken(username, excludeUserId = null) {
+  const sb = getSupabase();
+  let query = sb.from('users').select('id, username').eq('username', username);
+  if (excludeUserId) {
+    query = query.neq('id', excludeUserId);
+  }
+  const { data } = await query.maybeSingle();
+  return !!data;
+}
+
+/**
+ * Update user nickname / username
+ */
+async function updateUserNickname(userId, newUsername) {
+  const sb = getSupabase();
+  const { data, error } = await sb
+    .from('users')
+    .update({ username: newUsername })
+    .eq('id', userId)
+    .select('id, username')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update user password_hash
+ */
+async function updateUserPassword(userId, passwordHash) {
+  const sb = getSupabase();
+  const { error } = await sb
+    .from('users')
+    .update({ password_hash: passwordHash })
+    .eq('id', userId);
+  if (error) throw error;
+  return true;
+}
+
+/**
+ * Update user avatar_url
+ */
+async function updateUserAvatar(userId, avatarUrl) {
+  const sb = getSupabase();
+  try {
+    const { data, error } = await sb
+      .from('users')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', userId)
+      .select('id, username, avatar_url')
+      .single();
+
+    if (error) {
+      if (error.message && error.message.includes('avatar_url')) {
+        throw new Error("Kolom 'avatar_url' belum ada di tabel 'users' Supabase. Jalankan query: ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT NULL;");
+      }
+      throw error;
+    }
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
  * Log mission result to game_logs table
- * @param {string} playerName - Player name
- * @param {number} firesExtinguished - Number of fires extinguished
- * @param {number} duration - Mission duration in seconds
- * @returns {object} - Inserted game_logs row
  */
 async function logMissionResult(playerName, firesExtinguished, duration) {
   const sb = getSupabase();
@@ -44,8 +151,6 @@ async function logMissionResult(playerName, firesExtinguished, duration) {
 
 /**
  * Get all mission logs (for leaderboard)
- * @param {number} limit - Max results (default 100)
- * @returns {array} - Array of game_logs rows
  */
 async function getMissionLogs(limit = 100) {
   const sb = getSupabase();
@@ -61,8 +166,6 @@ async function getMissionLogs(limit = 100) {
 
 /**
  * Fetch top players by fires extinguished (leaderboard)
- * @param {number} limit - Max results (default 10)
- * @returns {array} - Sorted by fires_extinguished DESC, duration ASC
  */
 async function getLeaderboardTop(limit = 10) {
   const sb = getSupabase();
@@ -78,6 +181,12 @@ async function getLeaderboardTop(limit = 10) {
 
 module.exports = {
   getSupabase,
+  getUserProfile,
+  getUserWithPassword,
+  isUsernameTaken,
+  updateUserNickname,
+  updateUserPassword,
+  updateUserAvatar,
   logMissionResult,
   getMissionLogs,
   getLeaderboardTop

@@ -8,6 +8,10 @@ module.exports = {
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 
+  // Microsoft Azure Storage (Cloud or Azurite Local)
+  AZURE_STORAGE_CONNECTION_STRING: process.env.AZURE_STORAGE_CONNECTION_STRING || 'UseDevelopmentStorage=true;',
+  AZURE_CONTAINER_NAME: process.env.AZURE_CONTAINER_NAME || 'avatars',
+
   // JWT Authentication
   JWT_SECRET: process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
