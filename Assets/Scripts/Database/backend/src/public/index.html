@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fire Crew — Central Account Portal (Azure Object Storage)</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            riot: {
+              red: '#FF4655',
+              dark: '#0B0E14',
+              card: '#121722',
+              input: '#1A2130',
+              border: '#232D42'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 0%, #161c2b 0%, #0b0e14 60%, #06080c 100%);
+      min-height: 100vh;
+    }
+    .riot-card {
+      background: rgba(18, 23, 34, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .riot-input {
+      background-color: #161d2a;
+      border: 1px solid #232d42;
+      transition: all 0.2s ease;
+    }
+    .riot-input:focus {
+      border-color: #FF4655;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 70, 85, 0.2);
+    }
+    .riot-btn {
+      background: linear-gradient(135deg, #FF4655 0%, #E03544 100%);
+      transition: all 0.2s ease;
+    }
+    .riot-btn:hover {
+      box-shadow: 0 0 20px -3px rgba(255, 70, 85, 0.5);
+      transform: translateY(-1px);
+    }
+    .avatar-glow {
+      box-shadow: 0 0 30px -5px rgba(255, 70, 85, 0.35);
+    }
+  </style>
+</head>
+<body class="text-slate-100 font-sans antialiased selection:bg-[#FF4655] selection:text-white">
+
+  <!-- TOP HEADER / NAV -->
+  <header class="border-b border-slate-800/80 bg-slate-950/70 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <!-- BRAND LOGO -->
+      <div class="flex items-center gap-3">
+        <span class="text-2xl p-2 rounded-xl bg-red-500/10 border border-red-500/20">🔥</span>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+            RIOT-STYLE <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-[#FF4655] font-mono font-semibold border border-red-500/30">Account Portal</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Centralized Player Identity & Azure Blob Storage Vault</p>
+        </div>
+      </div>
+
+      <!-- STATUS & PROFILE -->
+      <div class="flex items-center gap-3 text-xs font-mono">
+        <!-- SYSTEM BADGE -->
+        <div id="systemBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="systemStatusText">API: Online</span>
+        </div>
+
+        <!-- AUTH PROFILE PILL (WHEN LOGGED IN) -->
+        <div id="userHeaderPill" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
+          <img id="navAvatarImg" src="" alt="Avatar" class="w-5 h-5 rounded-full object-cover hidden">
+          <span id="navAvatarFallback" class="w-5 h-5 rounded-full bg-red-500/20 text-[#FF4655] flex items-center justify-center font-bold text-[10px]">?</span>
+          <span id="navUsername" class="font-semibold text-white">Player</span>
+          <button onclick="handleLogout()" class="text-slate-400 hover:text-red-400 ml-1 transition" title="Logout">🚪</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
+    <div id="toastContent" class="px-5 py-3 rounded-xl shadow-2xl border text-sm flex items-center gap-3">
+      <span id="toastIcon">✨</span>
+      <span id="toastMessage">Pesan</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: AUTHENTICATION FORM (LOGIN / REGISTER) -->
+    <!-- ========================================================================= -->
+    <div id="authView" class="max-w-md mx-auto my-12">
+      <div class="riot-card rounded-2xl p-8 shadow-2xl border border-slate-800">
+        
+        <!-- HEADER -->
+        <div class="text-center mb-6">
+          <div class="inline-flex p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-3xl mb-3">🔥</div>
+          <h2 class="text-xl font-bold text-white tracking-tight">Portal Manajemen Akun</h2>
+          <p class="text-xs text-slate-400 mt-1">Masuk untuk mengelola Riot ID, foto avatar, dan keamanan akun</p>
+        </div>
+
+        <!-- TOGGLE TABS -->
+        <div class="grid grid-cols-2 p-1 bg-slate-900/80 rounded-xl mb-6 border border-slate-800">
+          <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="py-2 text-xs font-semibold rounded-lg transition bg-[#FF4655] text-white">
+            Masuk (Login)
+          </button>
+          <button id="tabBtnRegister" onclick="switchAuthTab('register')" class="py-2 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white">
+            Buat Akun (Register)
+          </button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email</label>
+            <input type="email" id="loginEmail" required class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="nama@email.com">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Kata Sandi</label>
+            <input type="password" id="loginPassword" required class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="••••••••">
+          </div>
+          <button type="submit" id="loginSubmitBtn" class="riot-btn w-full py-3 rounded-xl text-sm font-bold text-white uppercase tracking-wider mt-2">
+            Masuk Sekarang
+          </button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email</label>
+            <input type="email" id="regEmail" required class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="nama@email.com">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Riot ID / Username</label>
+            <input type="text" id="regUsername" required minlength="3" maxlength="30" class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="Contoh: KomandanRendy">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Kata Sandi (Min. 8 Karakter)</label>
+            <input type="password" id="regPassword" required minlength="8" class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="••••••••">
+          </div>
+          <button type="submit" id="regSubmitBtn" class="riot-btn w-full py-3 rounded-xl text-sm font-bold text-white uppercase tracking-wider mt-2">
+            Daftar Akun Baru
+          </button>
+        </form>
+
+        <!-- FOOTER BADGE -->
+        <div class="mt-6 pt-4 border-t border-slate-800/80 text-center text-[11px] text-slate-500 font-mono">
+          <span>Sub-CPMK 2.1: Object Storage & CAP Analysis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: AUTHENTICATED PORTAL (RIOT-STYLE ACCOUNT DASHBOARD) -->
+    <!-- ========================================================================= -->
+    <div id="dashboardView" class="hidden space-y-6">
+
+      <!-- HERO BANNER -->
+      <div class="riot-card rounded-2xl p-6 border border-red-500/20 bg-gradient-to-r from-red-950/30 via-slate-900/40 to-slate-900/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#FF4655]">
+            <span>🏛️ TEKNOLOGI CLOUD COMPUTING (SIF25503T / P)</span>
+          </div>
+          <h2 class="text-xl font-bold text-white">Centralized Player Account & Object Storage Vault</h2>
+          <p class="text-xs sm:text-sm text-slate-300">
+            Arsitektur decoupled: Data profil tersimpan di RDBMS, objek binary avatar diunggah langsung ke <strong>Microsoft Azure Blob Storage</strong> via SAS Token.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 text-xs font-mono">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">Azure Blob</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">SAS Token</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">Supabase</span>
+        </div>
+      </div>
+
+      <!-- PORTAL TABS -->
+      <div class="flex border-b border-slate-800 gap-2 sm:gap-4 overflow-x-auto">
+        <button id="pTabBtnProfile" onclick="switchPortalTab('profile')" class="pb-3 text-sm font-bold border-b-2 border-[#FF4655] text-white flex items-center gap-2">
+          <span>👤</span> Riot ID & Avatar
+        </button>
+        <button id="pTabBtnSecurity" onclick="switchPortalTab('security')" class="pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+          <span>🔒</span> Keamanan Akun
+        </button>
+        <button id="pTabBtnArch" onclick="switchPortalTab('arch')" class="pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+          <span>📊</span> Bukti Arsitektur Cloud
+        </button>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 1: RIOT ID & FOTO AVATAR (AZURE BLOB STORAGE) -->
+      <!-- ===================================================================== -->
+      <div id="tabContentProfile" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- KARTU 1: FOTO PROFIL / AVATAR (OBJECT STORAGE) (7 cols) -->
+        <div class="lg:col-span-7 riot-card rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span>🖼️</span> Foto Profil Avatar Pemain
+              </h3>
+              <p class="text-xs text-slate-400">Penyimpanan Objek Binary: Microsoft Azure Blob Storage</p>
+            </div>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-red-500/10 text-[#FF4655] border border-red-500/20">
+              Container: avatars
+            </span>
+          </div>
+
+          <!-- AVATAR DISPLAY & PICKER -->
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <!-- CURRENT AVATAR PREVIEW -->
+            <div class="relative shrink-0">
+              <div class="w-32 h-32 rounded-2xl overflow-hidden bg-slate-900 border-2 border-red-500/30 avatar-glow flex items-center justify-center">
+                <img id="profileAvatarImg" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                <div id="profileAvatarFallback" class="flex flex-col items-center justify-center text-slate-500">
+                  <span class="text-4xl">👤</span>
+                  <span class="text-[10px] font-mono mt-1 text-slate-400">Belum Ada Avatar</span>
+                </div>
+              </div>
+              <span id="avatarIndicator" class="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500 text-slate-950 font-bold hidden">
+                ACTIVE
+              </span>
+            </div>
+
+            <!-- UPLOAD CONTROLS -->
+            <div class="space-y-3 w-full">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Pilih File Foto Baru</label>
+                <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp,image/gif" onchange="handleFileSelect(event)"
+                  class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer">
+                <p class="text-[11px] text-slate-500 mt-1">Format: JPG, PNG, WebP, GIF (Maksimal 2 MB)</p>
+              </div>
+
+              <!-- ACTION BUTTON -->
+              <button id="uploadAvatarBtn" onclick="handleUploadAvatar()" disabled class="riot-btn w-full py-2.5 rounded-xl text-xs font-bold text-white uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed">
+                Unggah ke Azure Blob Storage
+              </button>
+            </div>
+          </div>
+
+          <!-- STATUS & EXPLANATION BOX -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-xs space-y-2 font-mono">
+            <div class="flex items-center justify-between text-slate-400">
+              <span>Alur Keamanan:</span>
+              <span class="text-[#FF4655]">Direct-to-Storage (SAS Token)</span>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-relaxed font-sans">
+              1. Browser meminta tiket SAS Write berlaku 15 menit ke Express.<br>
+              2. Browser mengunggah file binary langsung ke Azure via <code class="text-amber-400 font-mono">HTTP PUT</code>.<br>
+              3. URL permanen disimpan ke tabel profil di Supabase.
+            </div>
+            <div id="avatarUrlBox" class="hidden pt-2 border-t border-slate-800/80 truncate">
+              <span class="text-slate-400">Permanent Public URL:</span>
+              <a id="avatarPublicLink" href="" target="_blank" class="text-emerald-400 hover:underline block truncate"></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- KARTU 2: NICKNAME / RIOT ID (5 cols) -->
+        <div class="lg:col-span-5 riot-card rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="border-b border-slate-800/80 pb-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🏷️</span> Nickname / Gamer ID
+            </h3>
+            <p class="text-xs text-slate-400">Nama tampilan pemain yang terdaftar di seluruh sistem</p>
+          </div>
+
+          <form onsubmit="handleUpdateNickname(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Riot ID Saat Ini</label>
+              <input type="text" id="currentNicknameInput" readonly class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-slate-400 cursor-not-allowed">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Ganti Nickname Baru</label>
+              <input type="text" id="newNicknameInput" required minlength="3" maxlength="30" class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="Ketik nama baru...">
+              <p class="text-[11px] text-slate-500 mt-1">3 - 30 karakter. Harus unik (tidak dipakai pemain lain).</p>
+            </div>
+
+            <button type="submit" id="saveNicknameBtn" class="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white uppercase tracking-wider transition border border-slate-700">
+              Simpan Perubahan Nickname
+            </button>
+          </form>
+
+          <!-- PLAYER INFO PILL -->
+          <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 text-xs space-y-1.5">
+            <div class="text-slate-400 flex justify-between">
+              <span>Status Akun:</span>
+              <span class="text-emerald-400 font-semibold font-mono">VERIFIED GAMER</span>
+            </div>
+            <div class="text-slate-400 flex justify-between">
+              <span>Email:</span>
+              <span id="infoEmailText" class="text-slate-200 font-mono">-</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 2: KEAMANAN AKUN (PASSWORD & METADATA) -->
+      <!-- ===================================================================== -->
+      <div id="tabContentSecurity" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- GANTI KATA SANDI (7 cols) -->
+        <div class="lg:col-span-7 riot-card rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="border-b border-slate-800/80 pb-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🔐</span> Perbarui Kata Sandi Akun
+            </h3>
+            <p class="text-xs text-slate-400">Verifikasi kata sandi lama via enkripsi hash bcrypt</p>
+          </div>
+
+          <form onsubmit="handleUpdatePassword(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Kata Sandi Saat Ini</label>
+              <input type="password" id="currentPasswordInput" required class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="••••••••">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Kata Sandi Baru</label>
+                <input type="password" id="newPasswordInput" required minlength="8" class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="Min. 8 karakter">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Konfirmasi Sandi Baru</label>
+                <input type="password" id="confirmNewPasswordInput" required minlength="8" class="riot-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500" placeholder="Ulangi sandi baru">
+              </div>
+            </div>
+
+            <button type="submit" id="savePasswordBtn" class="riot-btn w-full py-3 rounded-xl text-xs font-bold text-white uppercase tracking-wider">
+              Perbarui Kata Sandi Sekarang
+            </button>
+          </form>
+        </div>
+
+        <!-- INFORMASI AKUN (5 cols) -->
+        <div class="lg:col-span-5 riot-card rounded-2xl p-6 border border-slate-800 space-y-4">
+          <div class="border-b border-slate-800/80 pb-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>📋</span> Metadata Kredensial
+            </h3>
+            <p class="text-xs text-slate-400">Rincian identitas akun yang tercatat di database</p>
+          </div>
+
+          <div class="space-y-3 text-xs font-mono">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">USER ID (UUID)</span>
+              <span id="metaUserId" class="text-slate-300 select-all">-</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">EMAIL TERDAFTAR</span>
+              <span id="metaEmail" class="text-slate-300">-</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">TANGGAL PENDAFTARAN</span>
+              <span id="metaCreatedAt" class="text-slate-300">-</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 3: BUKTI ARSITEKTUR CLOUD (ACADEMIC SHOWCASE) -->
+      <!-- ===================================================================== -->
+      <div id="tabContentArch" class="hidden riot-card rounded-2xl p-6 border border-slate-800 space-y-6">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🏛️</span> Visualisasi Arsitektur Cloud: Pemisahan Data & Teorema CAP
+          </h3>
+          <p class="text-xs text-slate-400">Bukti akademik kesesuaian dengan Sub-CPMK 2.1 RPS Komputasi Awan UTDI</p>
+        </div>
+
+        <!-- MATRIX TABLE -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono border border-slate-800 rounded-xl overflow-hidden">
+            <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+              <tr>
+                <th class="p-3">Kategori</th>
+                <th class="p-3">Layanan Terkelola</th>
+                <th class="p-3">Karakteristik Data</th>
+                <th class="p-3">Posisi Teorema CAP</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/80 text-slate-300">
+              <tr>
+                <td class="p-3 font-semibold text-emerald-400">Structured Data</td>
+                <td class="p-3">Supabase (Managed PostgreSQL)</td>
+                <td class="p-3">Tabel `users` (id, email, password_hash, username, avatar_url)</td>
+                <td class="p-3 text-amber-400">Consistent & Partition-Tolerant (CP) / ACID</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-[#FF4655]">Unstructured Object</td>
+                <td class="p-3">Microsoft Azure Blob Storage</td>
+                <td class="p-3">Binary File (Avatar image: PNG, JPG, WebP) di container `avatars`</td>
+                <td class="p-3 text-cyan-400">Available & Partition-Tolerant (AP) / High SLA</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- LIVE TOKEN INSPECTOR -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 font-mono text-xs">
+          <div class="text-slate-400 flex justify-between">
+            <span>JWT Bearer Token (Aktif di Session):</span>
+            <button onclick="copyToken()" class="text-[#FF4655] hover:underline">Salin Token</button>
+          </div>
+          <div id="rawTokenDisplay" class="p-2 rounded bg-slate-900 text-slate-400 text-[10px] break-all select-all max-h-20 overflow-y-auto">
+            -
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Global State
+    let authToken = localStorage.getItem('riot_auth_token') || null;
+    let currentUser = null;
+    let selectedAvatarFile = null;
+
+    // Toast helper
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      const content = document.getElementById('toastContent');
+      const icon = document.getElementById('toastIcon');
+      const msg = document.getElementById('toastMessage');
+
+      msg.textContent = message;
+      icon.textContent = isError ? '❌' : '✅';
+      content.className = `px-5 py-3 rounded-xl shadow-2xl border text-sm flex items-center gap-3 ${
+        isError ? 'bg-red-950/90 border-red-500/40 text-red-200' : 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200'
+      }`;
+
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    // Switch between Login and Register tabs
+    function switchAuthTab(tab) {
+      const btnLogin = document.getElementById('tabBtnLogin');
+      const btnRegister = document.getElementById('tabBtnRegister');
+      const formLogin = document.getElementById('loginForm');
+      const formRegister = document.getElementById('registerForm');
+
+      if (tab === 'login') {
+        btnLogin.className = 'py-2 text-xs font-semibold rounded-lg transition bg-[#FF4655] text-white';
+        btnRegister.className = 'py-2 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white';
+        formLogin.classList.remove('hidden');
+        formRegister.classList.add('hidden');
+      } else {
+        btnRegister.className = 'py-2 text-xs font-semibold rounded-lg transition bg-[#FF4655] text-white';
+        btnLogin.className = 'py-2 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white';
+        formRegister.classList.remove('hidden');
+        formLogin.classList.add('hidden');
+      }
+    }
+
+    // Switch between Dashboard sub-tabs
+    function switchPortalTab(tab) {
+      const tabs = ['profile', 'security', 'arch'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('pTabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const content = document.getElementById('tabContent' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tab) {
+          btn.className = 'pb-3 text-sm font-bold border-b-2 border-[#FF4655] text-white flex items-center gap-2';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    // Health Check on Load
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        if (data.status === 'ok') {
+          document.getElementById('systemStatusText').textContent = 'Azure Blob Ready';
+        }
+      } catch (err) {
+        document.getElementById('systemBadge').className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400';
+        document.getElementById('systemStatusText').textContent = 'API: Disconnected';
+      }
+    }
+
+    // Fetch User Profile
+    async function loadUserProfile() {
+      if (!authToken) {
+        showAuthView();
+        return;
+      }
+
+      try {
+        const res = await fetch('/v1/profile', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          currentUser = result.data;
+          renderProfileView();
+        } else {
+          // Token expired or invalid
+          handleLogout();
+        }
+      } catch (err) {
+        showToast('Koneksi server terganggu: ' + err.message, true);
+        handleLogout();
+      }
+    }
+
+    function renderProfileView() {
+      document.getElementById('authView').classList.add('hidden');
+      document.getElementById('dashboardView').classList.remove('hidden');
+      document.getElementById('userHeaderPill').classList.remove('hidden');
+
+      // Populate Header
+      document.getElementById('navUsername').textContent = currentUser.username;
+
+      // Populate Nickname tab
+      document.getElementById('currentNicknameInput').value = currentUser.username;
+      document.getElementById('newNicknameInput').value = '';
+      document.getElementById('infoEmailText').textContent = currentUser.email;
+
+      // Populate Metadata tab
+      document.getElementById('metaUserId').textContent = currentUser.id;
+      document.getElementById('metaEmail').textContent = currentUser.email;
+      document.getElementById('metaCreatedAt').textContent = new Date(currentUser.createdAt).toLocaleString('id-ID');
+      document.getElementById('rawTokenDisplay').textContent = authToken;
+
+      // Populate Avatar
+      const navImg = document.getElementById('navAvatarImg');
+      const navFallback = document.getElementById('navAvatarFallback');
+      const profImg = document.getElementById('profileAvatarImg');
+      const profFallback = document.getElementById('profileAvatarFallback');
+      const indicator = document.getElementById('avatarIndicator');
+      const urlBox = document.getElementById('avatarUrlBox');
+      const urlLink = document.getElementById('avatarPublicLink');
+
+      if (currentUser.avatar_url) {
+        navImg.src = currentUser.avatar_url;
+        navImg.classList.remove('hidden');
+        navFallback.classList.add('hidden');
+
+        profImg.src = currentUser.avatar_url;
+        profImg.classList.remove('hidden');
+        profFallback.classList.add('hidden');
+        indicator.classList.remove('hidden');
+
+        urlBox.classList.remove('hidden');
+        urlLink.href = currentUser.avatar_url;
+        urlLink.textContent = currentUser.avatar_url;
+      } else {
+        navImg.classList.add('hidden');
+        navFallback.classList.remove('hidden');
+        navFallback.textContent = currentUser.username.charAt(0).toUpperCase();
+
+        profImg.classList.add('hidden');
+        profFallback.classList.remove('hidden');
+        indicator.classList.add('hidden');
+        urlBox.classList.add('hidden');
+      }
+    }
+
+    function showAuthView() {
+      document.getElementById('dashboardView').classList.add('hidden');
+      document.getElementById('authView').classList.remove('hidden');
+      document.getElementById('userHeaderPill').classList.add('hidden');
+    }
+
+    // Login Handler
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginSubmitBtn');
+
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          authToken = data.data.token;
+          localStorage.setItem('riot_auth_token', authToken);
+          showToast('Login berhasil! Selamat datang kembali.');
+          await loadUserProfile();
+        } else {
+          showToast(data.error || 'Login gagal, periksa email dan password.', true);
+        }
+      } catch (err) {
+        showToast('Terjadi kesalahan koneksi: ' + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Masuk Sekarang';
+      }
+    }
+
+    // Register Handler
+    async function handleRegister(e) {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value.trim();
+      const username = document.getElementById('regUsername').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const btn = document.getElementById('regSubmitBtn');
+
+      btn.disabled = true;
+      btn.textContent = 'Mendaftarkan...';
+
+      try {
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          authToken = data.data.token;
+          localStorage.setItem('riot_auth_token', authToken);
+          showToast('Registrasi sukses! Akun baru berhasil dibuat.');
+          await loadUserProfile();
+        } else {
+          showToast(data.error || 'Registrasi gagal.', true);
+        }
+      } catch (err) {
+        showToast('Terjadi kesalahan koneksi: ' + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Daftar Akun Baru';
+      }
+    }
+
+    // Logout Handler
+    function handleLogout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('riot_auth_token');
+      showAuthView();
+      showToast('Anda telah keluar dari akun.');
+    }
+
+    // Nickname Update Handler
+    async function handleUpdateNickname(e) {
+      e.preventDefault();
+      const newNickname = document.getElementById('newNicknameInput').value.trim();
+      const btn = document.getElementById('saveNicknameBtn');
+
+      if (!newNickname || newNickname === currentUser.username) {
+        showToast('Ketikkan nickname baru yang berbeda.', true);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        const res = await fetch('/v1/profile/nickname', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ nickname: newNickname })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(data.message || 'Nickname berhasil diperbarui!');
+          currentUser.username = data.data.username;
+          renderProfileView();
+        } else {
+          showToast(data.error || 'Gagal mengubah nickname.', true);
+        }
+      } catch (err) {
+        showToast('Kesalahan koneksi: ' + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Perubahan Nickname';
+      }
+    }
+
+    // Password Update Handler
+    async function handleUpdatePassword(e) {
+      e.preventDefault();
+      const currentPassword = document.getElementById('currentPasswordInput').value;
+      const newPassword = document.getElementById('newPasswordInput').value;
+      const confirmNew = document.getElementById('confirmNewPasswordInput').value;
+      const btn = document.getElementById('savePasswordBtn');
+
+      if (newPassword !== confirmNew) {
+        showToast('Konfirmasi kata sandi baru tidak cocok!', true);
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        showToast('Kata sandi baru minimal 8 karakter!', true);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Memverifikasi & Menyimpan...';
+
+      try {
+        const res = await fetch('/v1/profile/password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(data.message || 'Kata sandi berhasil diperbarui!');
+          document.getElementById('currentPasswordInput').value = '';
+          document.getElementById('newPasswordInput').value = '';
+          document.getElementById('confirmNewPasswordInput').value = '';
+        } else {
+          showToast(data.error || 'Gagal mengubah kata sandi.', true);
+        }
+      } catch (err) {
+        showToast('Kesalahan koneksi: ' + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Perbarui Kata Sandi Sekarang';
+      }
+    }
+
+    // Avatar File Picker
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      const uploadBtn = document.getElementById('uploadAvatarBtn');
+
+      if (!file) {
+        selectedAvatarFile = null;
+        uploadBtn.disabled = true;
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Ukuran file melebihi 2 MB!', true);
+        e.target.value = '';
+        selectedAvatarFile = null;
+        uploadBtn.disabled = true;
+        return;
+      }
+
+      selectedAvatarFile = file;
+      uploadBtn.disabled = false;
+
+      // Local Preview before upload
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const profImg = document.getElementById('profileAvatarImg');
+        const profFallback = document.getElementById('profileAvatarFallback');
+        profImg.src = evt.target.result;
+        profImg.classList.remove('hidden');
+        profFallback.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Avatar Upload Handler (Direct-to-Azure via SAS Token)
+    async function handleUploadAvatar() {
+      if (!selectedAvatarFile) {
+        showToast('Pilih file gambar terlebih dahulu.', true);
+        return;
+      }
+
+      const uploadBtn = document.getElementById('uploadAvatarBtn');
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '1/3 Meminta Tiket SAS...';
+
+      try {
+        // LANGKAH 1: Minta Tiket SAS Upload ke Backend Express
+        const sasRes = await fetch('/v1/profile/avatar/sas-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({
+            fileName: selectedAvatarFile.name,
+            contentType: selectedAvatarFile.type || 'image/png'
+          })
+        });
+        const sasData = await sasRes.json();
+
+        if (!sasRes.ok || !sasData.success) {
+          throw new Error(sasData.error || 'Gagal membuat tiket SAS upload');
+        }
+
+        uploadBtn.textContent = '2/3 Mengunggah Langsung ke Azure...';
+
+        // LANGKAH 2: Upload Binary Langsung dari Browser ke Azure Blob Storage (HTTP PUT)
+        const azureUploadRes = await fetch(sasData.uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'x-ms-blob-type': 'BlockBlob',
+            'Content-Type': selectedAvatarFile.type || 'image/png'
+          },
+          body: selectedAvatarFile
+        });
+
+        if (!azureUploadRes.ok && azureUploadRes.status !== 201) {
+          throw new Error(`Azure Storage merespon status ${azureUploadRes.status}: Pastikan Azurite atau Azure aktif & CORS diizinkan`);
+        }
+
+        uploadBtn.textContent = '3/3 Menyimpan ke Database...';
+
+        // LANGKAH 3: Konfirmasi URL Permanen ke Database Backend
+        const confirmRes = await fetch('/v1/profile/avatar/confirm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ publicUrl: sasData.publicUrl })
+        });
+        const confirmData = await confirmRes.json();
+
+        if (!confirmRes.ok || !confirmData.success) {
+          throw new Error(confirmData.error || 'Gagal menyimpan URL ke database');
+        }
+
+        showToast('Foto avatar berhasil diunggah ke Azure Blob Storage!');
+        currentUser.avatar_url = sasData.publicUrl;
+        renderProfileView();
+
+        // Reset input file
+        document.getElementById('avatarFileInput').value = '';
+        selectedAvatarFile = null;
+      } catch (err) {
+        showToast('Upload gagal: ' + err.message, true);
+        // Rollback visual ke foto sebelumnya
+        renderProfileView();
+      } finally {
+        uploadBtn.disabled = !selectedAvatarFile;
+        uploadBtn.textContent = 'Unggah ke Azure Blob Storage';
+      }
+    }
+
+    // Copy token helper
+    function copyToken() {
+      if (authToken) {
+        navigator.clipboard.writeText(authToken);
+        showToast('Token JWT berhasil disalin ke clipboard!');
+      }
+    }
+
+    // Initialize Page
+    window.addEventListener('DOMContentLoaded', () => {
+      checkHealth();
+      loadUserProfile();
+    });
+  </script>
+</body>
+</html>
+
