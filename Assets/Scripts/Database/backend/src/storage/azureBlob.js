@@ -178,9 +178,54 @@ function generateAvatarUploadSas(userId, fileName = 'avatar.png', contentType = 
   };
 }
 
+/**
+ * Direct buffer upload to Azure Blob Storage using Azure SDK BlockBlobClient
+ * Returns publicUrl with read SAS token
+ */
+async function uploadAvatarDirect(userId, fileBuffer, originalName, mimeType) {
+  const connInfo = parseAzureConnection(config.AZURE_STORAGE_CONNECTION_STRING);
+  const containerName = config.AZURE_CONTAINER_NAME || 'avatars';
+  const ext = (path.extname(originalName) || '.png').toLowerCase().replace(/[^a-z0-9.]/g, '');
+  const timestamp = Date.now();
+  const prefix = String(userId).startsWith('usr_') ? userId : `usr_${userId}`;
+  const blobName = `${prefix}_${timestamp}${ext}`;
+
+  const client = getBlobServiceClient();
+  if (!client) throw new Error('Azure Blob client is not initialized');
+  const containerClient = client.getContainerClient(containerName);
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+  await blockBlobClient.uploadData(fileBuffer, {
+    blobHTTPHeaders: {
+      blobContentType: mimeType || 'image/png'
+    }
+  });
+
+  // Generate 1-year read SAS token so image displays in any browser
+  const sharedKey = new StorageSharedKeyCredential(connInfo.accountName, connInfo.accountKey);
+  const readPermissions = BlobSASPermissions.parse('r');
+  const readExpiresOn = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+
+  const readSasToken = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName,
+      permissions: readPermissions,
+      startsOn,
+      expiresOn: readExpiresOn
+    },
+    sharedKey
+  ).toString();
+
+  const publicUrl = `${connInfo.baseUrl}/${containerName}/${blobName}?${readSasToken}`;
+  return { publicUrl, blobName };
+}
+
 module.exports = {
   parseAzureConnection,
   getBlobServiceClient,
   ensureContainerExists,
-  generateAvatarUploadSas
+  generateAvatarUploadSas,
+  uploadAvatarDirect
 };

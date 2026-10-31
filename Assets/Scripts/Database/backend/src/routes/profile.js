@@ -1,8 +1,14 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 const { authenticateToken } = require('../middleware/auth');
 const db = require('../db/supabase');
 const azureBlob = require('../storage/azureBlob');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 } // 2MB limit
+});
 
 const router = express.Router();
 
@@ -220,6 +226,56 @@ router.post('/avatar/confirm', authenticateToken, async (req, res) => {
     return res.status(500).json({
       success: false,
       error: 'Gagal menyimpan foto profil: ' + err.message
+    });
+  }
+});
+
+/**
+ * POST /v1/profile/avatar - Upload avatar binary directly via server to Azure Blob Storage
+ * Header: Authorization: Bearer <jwt_token>
+ * Body: multipart/form-data (field: 'avatar')
+ */
+router.post('/avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'File avatar tidak ditemukan dalam request'
+      });
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(req.file.mimetype.toLowerCase())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Format file tidak didukung. Harap unggah JPG, PNG, WebP, atau GIF.'
+      });
+    }
+
+    // Direct upload buffer to Azure Blob Storage
+    const { publicUrl, blobName } = await azureBlob.uploadAvatarDirect(
+      req.user.userId,
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype
+    );
+
+    // Update avatar_url in Supabase
+    const updated = await db.updateUserAvatar(req.user.userId, publicUrl);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Foto avatar berhasil diunggah ke Microsoft Azure Blob Storage!',
+      data: {
+        avatar_url: updated.avatar_url,
+        blobName
+      }
+    });
+  } catch (err) {
+    console.error('[POST /v1/profile/avatar Error]', err.message);
+    return res.status(500).json({
+      success: false,
+      error: 'Gagal mengunggah foto profil: ' + err.message
     });
   }
 });
