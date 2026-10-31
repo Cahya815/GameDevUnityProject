@@ -7,7 +7,7 @@ const {
 const path = require('path');
 const config = require('../config');
 
-// Standard Azurite well-known credentials
+// Standard Azurite well-known credentials (fallback only)
 const AZURITE_ACCOUNT_NAME = 'devstoreaccount1';
 const AZURITE_ACCOUNT_KEY =
   'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==';
@@ -51,7 +51,6 @@ function getBlobServiceClient() {
       if (connStr && !connStr.includes('UseDevelopmentStorage=true')) {
         blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
       } else {
-        // Azurite local emulator
         const credential = new StorageSharedKeyCredential(
           AZURITE_ACCOUNT_NAME,
           AZURITE_ACCOUNT_KEY
@@ -69,25 +68,47 @@ function getBlobServiceClient() {
 }
 
 /**
- * Ensure the avatar container exists with public blob access level
+ * Ensure the avatar container exists and apply CORS automatically
  */
 async function ensureContainerExists() {
   const containerName = config.AZURE_CONTAINER_NAME || 'avatars';
   try {
     const client = getBlobServiceClient();
     if (!client) return false;
-    const containerClient = client.getContainerClient(containerName);
-    const createResponse = await containerClient.createIfNotExists({
-      access: 'blob' // Public read access for blobs (permanent avatar URLs)
-    });
-    if (createResponse.succeeded) {
-      console.log(`[Azure Storage] Container '${containerName}' created with public blob access.`);
-    } else {
-      console.log(`[Azure Storage] Container '${containerName}' is ready.`);
+
+    // 1. Automatically configure CORS so browser can PUT without manual portal setup
+    try {
+      await client.setProperties({
+        cors: [
+          {
+            allowedOrigins: '*',
+            allowedMethods: 'GET,POST,PUT,HEAD,OPTIONS',
+            allowedHeaders: '*',
+            exposedHeaders: '*',
+            maxAgeInSeconds: 3600
+          }
+        ]
+      });
+      console.log('[Azure Storage] CORS rules automatically applied to storage account.');
+    } catch (corsErr) {
+      console.warn('[Azure Storage] CORS check warning:', corsErr.message);
     }
+
+    // 2. Ensure container exists
+    const containerClient = client.getContainerClient(containerName);
+    try {
+      // Try to create with public blob access
+      const res = await containerClient.createIfNotExists({ access: 'blob' });
+      console.log(`[Azure Storage] Container '${containerName}' ready (Public Blob). Succeeded: ${res.succeeded}`);
+    } catch (pubErr) {
+      // Fallback if public access disabled at storage account level
+      const res = await containerClient.createIfNotExists();
+      console.log(`[Azure Storage] Container '${containerName}' ready (Private Container). Succeeded: ${res.succeeded}`);
+    }
+
     return true;
   } catch (err) {
-    console.warn(`[Azure Storage] Notice: Container check failed (${err.message}). Is Azurite or Azure online?`);
+    console.warn(`[Azure Storage] Notice: Container check failed (${err.message}).`);
     return false;
   }
 }
@@ -97,7 +118,7 @@ async function ensureContainerExists() {
  * @param {string} userId - User ID
  * @param {string} fileName - Original uploaded file name
  * @param {string} contentType - File MIME type (image/jpeg, image/png, etc.)
- * @returns {object} { uploadUrl, publicUrl, blobName }
+ * @returns {object} { uploadUrl, publicUrl, blobName, expiresAt }
  */
 function generateAvatarUploadSas(userId, fileName = 'avatar.png', contentType = 'image/png') {
   const connInfo = parseAzureConnection(config.AZURE_STORAGE_CONNECTION_STRING);
@@ -111,32 +132,49 @@ function generateAvatarUploadSas(userId, fileName = 'avatar.png', contentType = 
 
   const sharedKey = new StorageSharedKeyCredential(connInfo.accountName, connInfo.accountKey);
 
-  // Set SAS validity: valid from 5 minutes ago to 15 minutes from now
+  // Set SAS validity for Upload: valid from 5 minutes ago to 15 minutes from now
   const startsOn = new Date(Date.now() - 5 * 60 * 1000);
-  const expiresOn = new Date(Date.now() + 15 * 60 * 1000);
+  const uploadExpiresOn = new Date(Date.now() + 15 * 60 * 1000);
 
-  const permissions = BlobSASPermissions.parse('cw'); // Create + Write permission
+  const uploadPermissions = BlobSASPermissions.parse('cw'); // Create + Write permission
 
-  const sasToken = generateBlobSASQueryParameters(
+  const uploadSasToken = generateBlobSASQueryParameters(
     {
       containerName,
       blobName,
-      permissions,
+      permissions: uploadPermissions,
       startsOn,
-      expiresOn,
+      expiresOn: uploadExpiresOn,
       contentType
     },
     sharedKey
   ).toString();
 
-  const uploadUrl = `${connInfo.baseUrl}/${containerName}/${blobName}?${sasToken}`;
-  const publicUrl = `${connInfo.baseUrl}/${containerName}/${blobName}`;
+  // Generate Long-Lived Read SAS Token (1 Year) so <img> tag ALWAYS renders even if account is private!
+  const readPermissions = BlobSASPermissions.parse('r');
+  const readExpiresOn = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+  const readSasToken = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName,
+      permissions: readPermissions,
+      startsOn,
+      expiresOn: readExpiresOn
+    },
+    sharedKey
+  ).toString();
+
+  const uploadUrl = `${connInfo.baseUrl}/${containerName}/${blobName}?${uploadSasToken}`;
+  const publicUrl = `${connInfo.baseUrl}/${containerName}/${blobName}?${readSasToken}`;
+  const cleanUrl = `${connInfo.baseUrl}/${containerName}/${blobName}`;
 
   return {
     uploadUrl,
     publicUrl,
+    cleanUrl,
     blobName,
-    expiresAt: expiresOn.toISOString()
+    expiresAt: uploadExpiresOn.toISOString()
   };
 }
 

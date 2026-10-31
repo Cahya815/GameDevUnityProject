@@ -800,7 +800,7 @@
       reader.readAsDataURL(file);
     }
 
-    // Avatar Upload Handler (Direct-to-Azure via SAS Token)
+    // Avatar Upload Handler (Direct to Azure via Backend Express)
     async function handleUploadAvatar() {
       if (!selectedAvatarFile) {
         showToast('Pilih file gambar terlebih dahulu.', true);
@@ -809,62 +809,27 @@
 
       const uploadBtn = document.getElementById('uploadAvatarBtn');
       uploadBtn.disabled = true;
-      uploadBtn.textContent = '1/3 Meminta Tiket SAS...';
+      uploadBtn.textContent = 'Mengunggah ke Microsoft Azure...';
 
       try {
-        // LANGKAH 1: Minta Tiket SAS Upload ke Backend Express
-        const sasRes = await fetch('/v1/profile/avatar/sas-upload', {
+        const formData = new FormData();
+        formData.append('avatar', selectedAvatarFile);
+
+        const res = await fetch('/v1/profile/avatar', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
           },
-          body: JSON.stringify({
-            fileName: selectedAvatarFile.name,
-            contentType: selectedAvatarFile.type || 'image/png'
-          })
+          body: formData
         });
-        const sasData = await sasRes.json();
+        const data = await res.json();
 
-        if (!sasRes.ok || !sasData.success) {
-          throw new Error(sasData.error || 'Gagal membuat tiket SAS upload');
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Gagal mengunggah foto profil');
         }
 
-        uploadBtn.textContent = '2/3 Mengunggah Langsung ke Azure...';
-
-        // LANGKAH 2: Upload Binary Langsung dari Browser ke Azure Blob Storage (HTTP PUT)
-        const azureUploadRes = await fetch(sasData.uploadUrl, {
-          method: 'PUT',
-          headers: {
-            'x-ms-blob-type': 'BlockBlob',
-            'Content-Type': selectedAvatarFile.type || 'image/png'
-          },
-          body: selectedAvatarFile
-        });
-
-        if (!azureUploadRes.ok && azureUploadRes.status !== 201) {
-          throw new Error(`Azure Storage merespon status ${azureUploadRes.status}: Pastikan Azurite atau Azure aktif & CORS diizinkan`);
-        }
-
-        uploadBtn.textContent = '3/3 Menyimpan ke Database...';
-
-        // LANGKAH 3: Konfirmasi URL Permanen ke Database Backend
-        const confirmRes = await fetch('/v1/profile/avatar/confirm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({ publicUrl: sasData.publicUrl })
-        });
-        const confirmData = await confirmRes.json();
-
-        if (!confirmRes.ok || !confirmData.success) {
-          throw new Error(confirmData.error || 'Gagal menyimpan URL ke database');
-        }
-
-        showToast('Foto avatar berhasil diunggah ke Azure Blob Storage!');
-        currentUser.avatar_url = sasData.publicUrl;
+        showToast(data.message || 'Foto avatar berhasil diunggah ke Azure Blob Storage!');
+        currentUser.avatar_url = data.data.avatar_url;
         renderProfileView();
 
         // Reset input file
@@ -872,7 +837,6 @@
         selectedAvatarFile = null;
       } catch (err) {
         showToast('Upload gagal: ' + err.message, true);
-        // Rollback visual ke foto sebelumnya
         renderProfileView();
       } finally {
         uploadBtn.disabled = !selectedAvatarFile;
