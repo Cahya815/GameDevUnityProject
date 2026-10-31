@@ -99,11 +99,11 @@ async function ensureContainerExists() {
     try {
       // Try to create with public blob access
       const res = await containerClient.createIfNotExists({ access: 'blob' });
-      console.log(`[Azure Storage] Container '${containerName}' ready (Public Blob). Succeeded: ${res.succeeded}`);
+      console.log(`[Azure Storage] Container '${containerName}' ready (Public Blob, ${res.succeeded ? 'Created' : 'Already Exists'}).`);
     } catch (pubErr) {
       // Fallback if public access disabled at storage account level
       const res = await containerClient.createIfNotExists();
-      console.log(`[Azure Storage] Container '${containerName}' ready (Private Container). Succeeded: ${res.succeeded}`);
+      console.log(`[Azure Storage] Container '${containerName}' ready (Private Container, ${res.succeeded ? 'Created' : 'Already Exists'}).`);
     }
 
     return true;
