@@ -12,8 +12,8 @@ COPY package*.json ./
 # ─── Stage: Development ───────────────────────────────────────────────────────
 FROM base AS development
 
-# Install all dependencies (including devDependencies for nodemon)
-RUN npm ci
+# Install dependencies (fallback to npm install if package-lock is omitted)
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -31,8 +31,8 @@ CMD ["npm", "run", "dev"]
 # ─── Stage: Production ────────────────────────────────────────────────────────
 FROM base AS production
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copy source code
 COPY . .
